@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20.71 -20.71 141.42 141.42">
+  <g transform="rotate(45 50 50)">
+    <polygon points="50,50 50,0 100,0" fill="#ffe2a6" />
+    <polygon points="50,50 100,0 100,50" fill="#ae1f2a" />
+    <polygon points="50,50 100,50 100,100" fill="#d43950" />
+    <polygon points="50,50 100,100 50,100" fill="#9ec069" />
+    <polygon points="50,50 50,100 0,100" fill="#7fa244" />
+    <polygon points="50,50 0,100 0,50" fill="#4689b3" />
+    <polygon points="50,50 0,50 0,0" fill="#31759c" />
+    <polygon points="50,50 0,0 50,0" fill="#ffd25b" />
+  </g>
+</svg>
