@@ -7176,7 +7176,7 @@ details[open] > .cart-drawer__checkout-title::after {
      spacing; contact block is absolutely pinned to the bottom (below).
      NB: .fb-stage prefix raises specificity so the base .fb-cover__card rule
      (later in the file) can't reset our padding/gap. */
-  .fb-stage .fb-cover__card { align-self: stretch; justify-content: flex-start; gap: 1.8vw; padding: 7vh 2vw 8vh; }
+  .fb-stage .fb-cover__card { align-self: stretch; justify-content: flex-start; gap: 1.8vw; padding: 4vh 2vw 8vh; }
   .fb-stage .fb-cover__kicker { margin-top: 1.6vw; }   /* extra space under the logo */
   .fb-stage .fb-cover__sub { margin-top: -0.8vw; }   /* pull subtitle closer to the red kicker */
   /* product grid fills the available height so the page never exceeds 100vh.
