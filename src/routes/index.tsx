@@ -189,7 +189,7 @@ export default component$(() => {
               </span>
               <p class="fb-cover__kicker">Fresh off the farm</p>
               <p class="fb-cover__sub">
-                Premium Branded Jackets, Polos, and Hats
+                Premium Branded Farm Boy Apparel
               </p>
               <div class="fb-cover__contact-wrap">
                 <span class="fb-cover__contact-title">Contact</span>
