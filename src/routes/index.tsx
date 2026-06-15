@@ -188,11 +188,6 @@ export default component$(() => {
                 <img class="fb-cover__logo" src="/farmboy-logo.svg" alt="Farmboy Apparel" width="302" height="280" />
               </span>
               <p class="fb-cover__kicker">Fresh off the farm</p>
-              <p class="fb-cover__sub">
-                {isTech.value
-                  ? "Rugged work wear, picked fresh for the crew — built to last, branded to belong."
-                  : "Branded jackets, polos, hats & more — hand-picked for the Farm Boy crew."}
-              </p>
               <div class="fb-cover__contact-wrap">
                 <span class="fb-cover__contact-title">Contact</span>
                 <a class="fb-cover__contact" href="mailto:info@farmboyapparel.ca">
