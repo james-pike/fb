@@ -7242,14 +7242,14 @@ details[open] > .cart-drawer__checkout-title::after {
 .fb-cover__kicker {
   font-family: var(--font-script);
   font-weight: 700;
-  font-size: 2.5vw;
+  font-size: 3vw;
   color: var(--fb-red-deep);
   line-height: 1;
   margin: 0;
 }
 .fb-cover__sub {
   font-family: var(--font-sans);
-  font-size: 1.2vw;
+  font-size: 1.45vw;
   line-height: 1.5;
   color: rgba(58,44,26,0.82);
   margin: 0;
