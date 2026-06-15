@@ -961,6 +961,6 @@
      text-anchor="middle"
      textLength="72"
      lengthAdjust="spacingAndGlyphs"
-     style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:12px;fill:#231f20;fill-opacity:1;stroke:none"
+     style="font-family:'Fraunces','Georgia','Times New Roman',serif;font-weight:700;font-size:12px;fill:#231f20;fill-opacity:1;stroke:none"
      id="text-apparel">APPAREL</text>
 </svg>
