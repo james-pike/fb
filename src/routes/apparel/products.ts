@@ -61,9 +61,7 @@ export const allProducts = [
     "sizes": "S - 3XL / LT - 2XLT",
     "badge": "",
     "colors": [
-      "#1a1a18",
-      "#8a5d3b",
-      "#6b7280"
+      "#1a1a18"
     ],
     "price": 199.99,
     "img": "/sku/insulated-jacket-black.png",

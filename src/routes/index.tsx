@@ -318,7 +318,13 @@ export default component$(() => {
                       {added.value && <div class="fb-detail__added">✓ Added to your cart</div>}
 
                       {sel.material && <p class="fb-detail__meta-line">{sel.material}</p>}
-                      {sel.details && <p class="fb-detail__desc">{sel.details}</p>}
+                      {sel.details && (
+                        <ul class={`fb-detail__details-list ${sel.details.split(",").length <= 2 ? "fb-detail__details-list--single" : ""}`}>
+                          {sel.details.split(",").map((d, i) => (
+                            <li key={i}>{d.trim()}</li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -344,16 +350,15 @@ export default component$(() => {
               </div>
             )}
           </div>
+          {/* email under the products on mobile/tablet — inside the hero card, no label */}
+          <div class="fb-contact-bottom">
+            <a class="fb-cover__contact" href="mailto:info@farmboyapparel.ca">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <span>info@farmboyapparel.ca</span>
+            </a>
+          </div>
         </div>
       </section>
-      {/* contact at the page bottom on mobile/tablet (the in-card one is hidden there) */}
-      <div class="fb-contact-bottom">
-        <span class="fb-cover__contact-title">Contact</span>
-        <a class="fb-cover__contact" href="mailto:info@farmboyapparel.ca">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-          <span>info@farmboyapparel.ca</span>
-        </a>
-      </div>
     </div>
   );
 });
