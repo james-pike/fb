@@ -5,7 +5,7 @@ import type { Locale } from "../../i18n";
 export const allProducts = [
   {
     "sku": "FB-1",
-    "name": "Fort Loose Short Sleeve Chambray Shirt",
+    "name": "Carhartt Short Sleeve Shirt - Chambray",
     "category": "Shirts",
     "sizes": "S - 4XL / LT - 4XLT",
     "badge": "",
@@ -22,7 +22,7 @@ export const allProducts = [
   },
   {
     "sku": "FB-2",
-    "name": "Fort Loose Long Sleeve Chambray Shirt",
+    "name": "Carhartt Long Sleeve Shirt - Chambray",
     "category": "Shirts",
     "sizes": "S - 4XL / LT - 4XLT",
     "badge": "",
@@ -56,7 +56,7 @@ export const allProducts = [
   },
   {
     "sku": "FB-4",
-    "name": "Insulated Jacket",
+    "name": "Carhartt Insulated Jacket - Black",
     "category": "Jackets",
     "sizes": "S - 3XL / LT - 2XLT",
     "badge": "",
@@ -71,7 +71,7 @@ export const allProducts = [
       "/sku/insulated-jacket-black.png"
     ],
     "material": "8.1 oz 97% nylon / 3% spandex Rugged Flex shell, 100 g 3M polyester insulation",
-    "details": "Relaxed fit insulated jacket, Full Swing range of motion, Rain Defender DWR, Wind Fighter, mock neck with detachable adjustable hood, knit storm cuffs, two zippered chest pockets, adjustable droptail hem, Warmth Level 3, #106006"
+    "details": "Relaxed fit insulated jacket, Camden Cryder, Full Swing range of motion, Rain Defender DWR, Wind Fighter, mock neck with detachable adjustable hood, knit storm cuffs, two zippered chest pockets, adjustable droptail hem, Warmth Level 3, #106006"
   },
   {
     "sku": "FB-3",

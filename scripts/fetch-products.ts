@@ -4,13 +4,18 @@ import { writeFileSync } from "fs";
 
 config();
 
-const db = createClient({
-  url: process.env.TURSO_URL || process.env.VITE_TURSO_URL || "",
-  authToken: process.env.TURSO_AUTH_TOKEN || process.env.VITE_TURSO_AUTH_TOKEN || undefined,
-});
+const url = process.env.TURSO_URL || process.env.VITE_TURSO_URL || "";
+const authToken = process.env.TURSO_AUTH_TOKEN || process.env.VITE_TURSO_AUTH_TOKEN || undefined;
 
 async function fetchAndWrite() {
+  // No DB configured (e.g. env vars not set on the build) — keep the committed
+  // products.ts snapshot rather than crashing the build.
+  if (!url) {
+    console.warn("fetch-products: TURSO_URL not set — keeping existing products.ts");
+    return;
+  }
   try {
+    const db = createClient({ url, authToken });
     const result = await db.execute(
       "SELECT * FROM products WHERE vendor = 'farmboy' ORDER BY sort_order ASC"
     );
