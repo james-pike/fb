@@ -7174,7 +7174,7 @@ details[open] > .cart-drawer__checkout-title::after {
   }
   /* logo/kicker/subtitle cluster nudged to an upper-middle spot with even
      spacing; contact block is absolutely pinned to the bottom (below) */
-  .fb-cover__card { align-self: stretch; justify-content: flex-start; gap: 2vw; padding: 16vh 2vw 8vh; }
+  .fb-cover__card { align-self: stretch; justify-content: flex-start; gap: 2vw; padding: 20vh 2vw 8vh; }
   /* product grid fills the available height so the page never exceeds 100vh.
      NB: rely on align-self:stretch (auto height) — an explicit height:100%
      here can't resolve and collapses the grid to the top half. */
