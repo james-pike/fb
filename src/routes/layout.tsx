@@ -226,7 +226,7 @@ export const useSubmitOrder = routeAction$(
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-      <div style="background:#1e40af;padding:20px 24px;border-radius:8px 8px 0 0">
+      <div style="background:#d5202a;padding:20px 24px;border-radius:8px 8px 0 0">
         <h1 style="color:#fff;margin:0;font-size:20px">Farmboy Apparel — Apparel Order</h1>
         ${orderNumber ? `<p style="color:#cbd5e1;margin:6px 0 0;font-size:13px;letter-spacing:0.04em">Order ${esc(orderNumber)}</p>` : ""}
       </div>
@@ -261,7 +261,7 @@ export const useSubmitOrder = routeAction$(
             </tr>
             <tr>
               <td colspan="3" style="padding:10px 12px;text-align:right;font-weight:700">Total</td>
-              <td style="padding:10px 12px;text-align:right;font-weight:700;color:#2563eb">$${total.toFixed(2)}</td>
+              <td style="padding:10px 12px;text-align:right;font-weight:700;color:#d5202a">$${total.toFixed(2)}</td>
             </tr>
           </tfoot>
         </table>
@@ -364,6 +364,8 @@ const colorName = (hex: string, locale: Locale): string => {
 
 export default component$(() => {
   const loc = useLocation();
+  // The home page is a single-screen (~100vh) layout, so the footer is redundant there.
+  const isHome = useComputed$(() => loc.url.pathname === "/");
   const nav = useNavigate();
   const auth = useAuthCheck();
   const loginAction = useLogin();
@@ -717,7 +719,7 @@ export default component$(() => {
       )}
 
       {(auth.value.loggedIn || (loginAction.value && !loginAction.value.failed)) && <>
-      <header class={`site-header site-header--white ${cartOpen.value ? "site-header--cart-open" : ""} ${loc.url.pathname === "/" && !cartOpen.value ? `site-header--hero-hidden ${headerScrolled.value ? "site-header--hero-visible" : ""}` : ""}`}>
+      <header class={`site-header site-header--white ${isHome.value ? "site-header--off" : ""} ${cartOpen.value ? "site-header--cart-open" : ""}`}>
         <div class="site-header__inner">
           <Link href="/" class="site-header__logo brand-cluster brand-cluster--small">
             <svg class="brand-cluster__mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -886,6 +888,7 @@ export default component$(() => {
         <Slot />
       </main>
 
+      {!isHome.value && (
       <footer class="site-footer">
         <div class="site-footer__inner">
           <div class="site-footer__brand brand-cluster brand-cluster--small">
@@ -929,6 +932,7 @@ export default component$(() => {
           </div>
         </div>
       </footer>
+      )}
 
       {/* Cart Drawer */}
       {cartOpen.value && (

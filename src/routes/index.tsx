@@ -1,258 +1,347 @@
-import { component$, useSignal, useContext, useVisibleTask$, useComputed$ } from "@builder.io/qwik";
-import { Carousel } from "@qwik-ui/headless";
+import { component$, useSignal, useContext, useVisibleTask$, useComputed$, $ } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { LocaleContext, t } from "../i18n";
-import { ProductCatalog } from "../components/product-catalog/product-catalog";
+import { allProducts, colorName } from "./apparel/products";
+import { expandSizes, sortColorsWhiteLast } from "./apparel/utils";
 import { LoginTypeContext } from "./layout";
+
+// Size chips for a product: expand each "/"-separated range
+// (e.g. "S - 4XL / LT - 4XLT" -> S…4XL plus the tall run).
+const sizeOptions = (s: string): string[] => {
+  if (!s) return [];
+  if (s === "One Size") return ["One Size"];
+  return s.split("/").flatMap((seg) => expandSizes(seg.trim()));
+};
+
+// Rigby Dungaree pants use a waist × inseam matrix (same as the MN store).
+const WAIST_LENGTH_SKUS = new Set(["FB-3"]);
+const PANTS_WAIST = ["28", "29", "30", "31", "32", "33", "34", "35", "36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+const PANTS_INSEAM = ["28", "30", "32", "34", "36"];
+
+// Regular/Tall handled as a separate variant line (same approach as CM/MN) —
+// the size bubbles narrow to the chosen variant instead of mixing in the talls.
+const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL"];
+const VARIANT_SKUS = new Set(["FB-1", "FB-2"]);
+const VARIANT_SIZES: Record<string, Record<string, string[]>> = {
+  "FB-1": { "Regular": ["S", "M", "L", "XL", "2XL", "3XL", "4XL"], "Tall": ["L", "XL", "2XL", "3XL"] },
+  "FB-2": { "Regular": ["S", "M", "L", "XL", "2XL", "3XL", "4XL"], "Tall": ["L", "XL", "2XL", "3XL"] },
+};
+// Size pool for a product: the chosen variant's run, the union before a
+// variant is picked, or the plain expanded sizes for non-variant SKUs.
+const sizeChipsFor = (sku: string, sizes: string, variant: string): string[] => {
+  const vmap = VARIANT_SIZES[sku];
+  if (vmap) {
+    if (variant && vmap[variant]) return vmap[variant];
+    const union = new Set<string>();
+    Object.values(vmap).forEach((arr) => arr.forEach((s) => union.add(s)));
+    return Array.from(union).sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b));
+  }
+  return sizeOptions(sizes);
+};
 
 export default component$(() => {
   const locale = useContext(LocaleContext);
   const loginType = useContext(LoginTypeContext);
   const isTech = useComputed$(() => loginType.value === "tech");
-  const isSafety = useComputed$(() => loginType.value === "safety");
   const hasCartItems = useSignal(false);
-  const heroIndex = useSignal(0);
-  const carouselPaused = useSignal(false);
-  const touchStartX = useSignal(0);
-  const touchStartY = useSignal(0);
+
+  // Single-page product expansion — no route change.
+  const selectedSku = useSignal("");
+  const selected = useComputed$(() => allProducts.find((p) => p.sku === selectedSku.value) || null);
+  const selSize = useSignal("");
+  const selColor = useSignal("");
+  const selQty = useSignal(1);
+  const added = useSignal(false);
+  const detailImg = useSignal(0);
+  const selWaist = useSignal("");
+  const selLength = useSignal("");
+  const selVariant = useSignal("");
+
+  const openProduct = $((sku: string) => {
+    const p = allProducts.find((x) => x.sku === sku);
+    selectedSku.value = sku;
+    selColor.value = sortColorsWhiteLast(p?.colors || [])[0] || "";
+    selSize.value = "";
+    selWaist.value = "";
+    selLength.value = "";
+    selVariant.value = "";
+    selQty.value = 1;
+    detailImg.value = 0;
+    added.value = false;
+  });
+  const closeProduct = $(() => { selectedSku.value = ""; added.value = false; });
+
+  const addToCart = $(() => {
+    const p = allProducts.find((x) => x.sku === selectedSku.value);
+    if (!p) return;
+    const isWL = WAIST_LENGTH_SKUS.has(p.sku);
+    const isVariant = VARIANT_SKUS.has(p.sku);
+    const opts = sizeChipsFor(p.sku, p.sizes, selVariant.value);
+    if (isWL) {
+      if (!selWaist.value || !selLength.value) return;
+    } else if (isVariant) {
+      if (!selVariant.value || !selSize.value) return;
+    } else if (opts.length > 1 && !selSize.value) {
+      return;
+    }
+    if ((p.colors?.length || 0) > 0 && !selColor.value) return;
+    const sizeVal = isWL
+      ? `W${selWaist.value} x L${selLength.value}`
+      : isVariant
+        ? `${selSize.value} ${selVariant.value}`
+        : (selSize.value || opts[0] || "One Size");
+    try {
+      const key = `ce_cart_mn_${loginType.value || "clothing"}`;
+      const saved = localStorage.getItem(key);
+      const items = saved ? JSON.parse(saved) : [];
+      const existing = items.find(
+        (i: any) => i.name === p.name && i.size === sizeVal && i.color === selColor.value
+      );
+      if (existing) {
+        existing.quantity += selQty.value;
+      } else {
+        const codeMatch = p.details?.match(/#[A-Za-z0-9]+/);
+        const item: any = {
+          name: p.name, sku: p.sku, category: p.category,
+          size: sizeVal, color: selColor.value, quantity: selQty.value,
+          price: p.price, img: p.img,
+        };
+        if (codeMatch) item.code = codeMatch[0];
+        if (isWL) { item.waist = selWaist.value; item.length = selLength.value; }
+        if (isVariant) { item.variant = selVariant.value; }
+        items.push(item);
+      }
+      localStorage.setItem(key, JSON.stringify(items));
+      window.dispatchEvent(new CustomEvent("cart-updated"));
+    } catch (err) { console.error("addToCart error:", err); }
+    added.value = true;
+    selQty.value = 1;
+    setTimeout(() => { added.value = false; }, 3500);
+  });
 
   // eslint-disable-next-line qwik/no-use-visible-task
   useVisibleTask$(({ cleanup }) => {
     const check = () => {
       try {
-        const cart = JSON.parse(localStorage.getItem("ce_cart") || "[]");
+        const cart = JSON.parse(localStorage.getItem(`ce_cart_mn_${loginType.value || "clothing"}`) || "[]");
         hasCartItems.value = cart.length > 0;
       } catch { hasCartItems.value = false; }
     };
     check();
     window.addEventListener("cart-updated", check);
     cleanup(() => window.removeEventListener("cart-updated", check));
-
-    // Always play the hero intro animations on every render of the home page.
-    // (Earlier we gated this on sessionStorage; that suppressed the animation
-    // even on login, so the gate has been removed.)
     document.documentElement.classList.remove("mn-hero-no-anim");
-  });
-
-  // Carousel autoplay (manual to avoid qwik-ui serialization bug)
-  // eslint-disable-next-line qwik/no-use-visible-task
-  useVisibleTask$(({ cleanup }) => {
-    const id = setInterval(() => {
-      if (carouselPaused.value) return;
-      heroIndex.value = (heroIndex.value + 1) % 2;
-    }, 9000);
-    // Resume autoplay when user clicks anywhere outside a carousel pagination
-    const onDocClick = (e: MouseEvent) => {
-      if (!carouselPaused.value) return;
-      const target = e.target as HTMLElement;
-      if (!target.closest('.hero-carousel__dots, .hero-bento-carousel__dots')) {
-        carouselPaused.value = false;
-      }
-    };
-    document.addEventListener('click', onDocClick);
-    cleanup(() => {
-      clearInterval(id);
-      document.removeEventListener('click', onDocClick);
-    });
   });
 
   return (
     <div class="home-page">
-      {/* Hero */}
-      <section class="hero">
-        {/* Upper 2/3: full-width carousel as background, with text + nav overlaid */}
+      {/* Hero — Farm Boy flyer paper backdrop + left logo cluster, right shelf */}
+      <section class="hero hero--fb">
         <div
           class="hero__upper"
           onClick$={(e) => {
-            // Advance the carousel when the user taps the dark hero overlay
-            // (vignette / centered text). Skip clicks on real interactive
-            // elements so buttons, links, pagination dots, etc. still work.
+            // When a product is expanded, clicking anywhere outside it closes it.
+            // Ignore clicks on a product card (that's an open) and on the detail
+            // / cart button — otherwise the open click would bubble here and
+            // immediately close what just opened.
+            if (!selectedSku.value) return;
             const target = e.target as HTMLElement | null;
-            if (!target) return;
-            if (target.closest('button, a, input, label, [role="button"], .hero-carousel__dots, .hero-carousel__pagination')) return;
-            carouselPaused.value = true;
-            heroIndex.value = (heroIndex.value + 1) % 2;
+            if (target && (target.closest(".fb-detail") || target.closest(".fb-cart-float") || target.closest(".fb-shelf__card"))) return;
+            selectedSku.value = "";
+            added.value = false;
           }}
         >
-          <Carousel.Root class="hero-carousel" bind:selectedIndex={heroIndex} align="start" draggable={false} rewind>
-            <Carousel.Scroller
-              class="hero-carousel__scroller"
-              onTouchStart$={(e) => {
-                if (e.touches.length !== 1) return;
-                touchStartX.value = e.touches[0].clientX;
-                touchStartY.value = e.touches[0].clientY;
-              }}
-              onTouchEnd$={(e) => {
-                const t = e.changedTouches[0];
-                const dx = t.clientX - touchStartX.value;
-                const dy = t.clientY - touchStartY.value;
-                if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
-                carouselPaused.value = true;
-                heroIndex.value = (heroIndex.value + 1) % 2;
-              }}
-            >
-              <Carousel.Slide class="hero-carousel__slide">
-                <img src="/hero.jpg" alt="Farmboy Apparel hero" loading="eager" />
-              </Carousel.Slide>
-              <Carousel.Slide class="hero-carousel__slide hero-carousel__slide--van">
-                <img src="/hero-edmonton-van.jpg" alt="Farmboy Apparel service van" class="hero-carousel__van-img" loading="eager" />
-              </Carousel.Slide>
-            </Carousel.Scroller>
-
-            <Carousel.Pagination class="hero-carousel__dots" onClick$={() => { carouselPaused.value = true; }}>
-              <Carousel.Bullet class="hero-carousel__dot" />
-              <Carousel.Bullet class="hero-carousel__dot" />
-            </Carousel.Pagination>
-          </Carousel.Root>
-
-          {/* Vignette gradient for text readability */}
-          <div class="hero__vignette" />
-
-          {/* Floating nav header */}
-          <div class="hero-card-header">
-            <a href="/" class="hero-card-header__logo" aria-label="Home" />
-
-            <nav class="hero-card-header__nav">
-              <a href="/" class="hero-card-header__nav-link active">{t("nav.home", locale.value)}</a>
-              <a href="/apparel/" class="hero-card-header__nav-link">{isTech.value ? t("teaser.workwear.title", locale.value) : t("nav.apparel", locale.value)}</a>
-            </nav>
-            <div class="hero-card-header__actions">
-              {/* <button class="hero-card-header__btn" onClick$={() => {
-                const btn = document.querySelector('.locale-btn') as HTMLElement;
-                btn?.click();
-              }} aria-label="Language">
-                <span class="hero-card-header__locale-short">{locale.value === "en" ? "FR" : "EN"}</span>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-                <span class="hero-card-header__btn-label">{locale.value === "en" ? "Français" : "English"}</span>
-              </button> */}
-              <button class={`hero-card-header__btn ${hasCartItems.value ? "hero-card-header__btn--cart-active" : ""}`} onClick$={() => {
-                const btn = document.querySelector('.cart-btn') as HTMLElement;
-                btn?.click();
-              }} aria-label="Cart">
-                <span class="hero-card-header__btn-label">{t("cart.mycart", locale.value)}</span>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
-              </button>
-              <button class="hero-card-header__btn hero-card-header__btn--logout" onClick$={() => {
-                const btn = document.querySelector('.logout-btn') as HTMLElement;
-                btn?.click();
-              }} aria-label={t("login.logout", locale.value)}>
-                <span class="hero-card-header__btn-label">{t("login.logout", locale.value)}</span>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              </button>
-              <button class="hero-card-header__btn" onClick$={() => {
-                const btn = document.querySelector('.hamburger-btn') as HTMLElement;
-                btn?.click();
-              }} aria-label="Menu">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
-              </button>
-            </div>
+          {/* Flyer paper backdrop + printed decorations */}
+          <div class="fb-flyer" aria-hidden="true">
+            <div class="fb-flyer__paper" />
+            <svg class="fb-doodle fb-doodle--sprig-l" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M60 110 C60 70 40 50 20 40"/><path d="M48 78 C30 76 22 64 22 50"/><path d="M52 60 C40 54 36 42 40 30"/><path d="M60 70 C72 60 78 46 74 32"/></svg>
+            <svg class="fb-doodle fb-doodle--maple" viewBox="0 0 100 100" fill="currentColor"><path d="M50 6 56 28 74 18 66 38 90 36 72 50 90 64 66 62 74 82 56 72 50 94 44 72 26 82 34 62 10 64 28 50 10 36 34 38 26 18 44 28z"/></svg>
+            <svg class="fb-doodle fb-doodle--leaf-r" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 100 C40 60 80 30 110 20 C104 56 78 92 36 100 Z"/><path d="M28 92 C50 70 78 48 102 32"/></svg>
+            <span class="fb-doodle fb-doodle--berry fb-doodle--berry-a" />
+            <span class="fb-doodle fb-doodle--berry fb-doodle--berry-b" />
+            {/* Scattered abstract produce — subtle background pattern */}
+            <svg class="fb-veg fb-veg--a" viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="52" r="38"/><path d="M50 16c2-8 8-12 16-12-2 9-8 14-16 14z"/></svg>
+            <svg class="fb-veg fb-veg--b" viewBox="0 0 100 100" fill="currentColor"><path d="M50 10C70 38 76 60 60 76 50 86 38 86 30 76 16 60 30 38 50 10Z"/></svg>
+            <svg class="fb-veg fb-veg--c" viewBox="0 0 100 100" fill="currentColor"><path d="M16 84C40 44 80 30 88 20 82 62 48 88 18 82Z"/></svg>
+            <svg class="fb-veg fb-veg--d" viewBox="0 0 100 100" fill="currentColor"><circle cx="36" cy="40" r="12"/><circle cx="60" cy="38" r="12"/><circle cx="48" cy="60" r="12"/><circle cx="70" cy="60" r="12"/><circle cx="58" cy="80" r="12"/></svg>
+            <svg class="fb-veg fb-veg--e" viewBox="0 0 100 100" fill="currentColor"><path d="M50 90 44 40Q50 30 58 40Z"/><path d="M50 38 46 18M50 38 54 18M50 38 50 14" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/></svg>
+            <svg class="fb-veg fb-veg--f" viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="50" r="40"/></svg>
+            <svg class="fb-veg fb-veg--g" viewBox="0 0 100 100" fill="currentColor"><path d="M50 10C70 38 76 60 60 76 50 86 38 86 30 76 16 60 30 38 50 10Z"/></svg>
+            <svg class="fb-veg fb-veg--h" viewBox="0 0 100 100" fill="currentColor"><path d="M16 84C40 44 80 30 88 20 82 62 48 88 18 82Z"/></svg>
+            <svg class="fb-veg fb-veg--i" viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="52" r="36"/><path d="M50 18c2-8 8-12 16-12-2 9-8 14-16 14z"/></svg>
           </div>
 
-          {/* Centered text overlay (badge + logo + title + subtitle) */}
-          <div class="hero__text">
-            <svg class="hero__brandmark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <polygon points="50,50 50,0 100,0" fill="#ffe2a6" />
-              <polygon points="50,50 100,0 100,50" fill="#ae1f2a" />
-              <polygon points="50,50 100,50 100,100" fill="#d43950" />
-              <polygon points="50,50 100,100 50,100" fill="#9ec069" />
-              <polygon points="50,50 50,100 0,100" fill="#7fa244" />
-              <polygon points="50,50 0,100 0,50" fill="#4689b3" />
-              <polygon points="50,50 0,50 0,0" fill="#31759c" />
-              <polygon points="50,50 0,0 50,0" fill="#ffd25b" />
-              <rect class="hero__brandmark-ring" x="0" y="0" width="100" height="100" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="0.5" vector-effect="non-scaling-stroke" />
-            </svg>
-            <div class="hero__words">
-              <span class="hero__title-word"><span class="hero__title-word-part">MODERN</span> <span class="hero__title-word-part">NIAGARA</span></span>
-              <span class="hero__title-word hero__title-word--sub">BUILDING SERVICES</span>
-              <span class="hero__title-word hero__title-word--letters">
-                {"APPAREL".split("").map((ch, i) => (
-                  /* Per-letter delays live in CSS (hero__title-letter:nth-child)
-                     instead of inline style — keeps timing deterministic across
-                     devices and avoids hydration jitter / CSS-var resolution
-                     stalls on slower browsers. */
-                  <span key={i} class="hero__title-letter">{ch}</span>
-                ))}
+          {/* Floating cart button (top-right, overlaid) */}
+          <button class={`fb-headbtn fb-headbtn--cart fb-cart-float ${hasCartItems.value ? "fb-headbtn--cart-active" : ""}`} onClick$={() => {
+            const btn = document.querySelector('.cart-btn') as HTMLElement;
+            btn?.click();
+          }} aria-label="Cart">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            <span>Cart</span>
+          </button>
+
+          {/* Single-screen stage: logo cover (left) + product area (right) */}
+          <div class="fb-stage">
+            <div class="fb-cover__card">
+              <span class="fb-cover__badge">
+                <img class="fb-cover__logo" src="/farmboy-logo.svg" alt="Farmboy Apparel" width="302" height="280" />
               </span>
+              <p class="fb-cover__kicker">Fresh off the farm</p>
+              <p class="fb-cover__sub">
+                {isTech.value
+                  ? "Rugged work wear, picked fresh for the crew — built to last, branded to belong."
+                  : "Branded jackets, polos, hats & more — hand-picked for the Farm Boy crew."}
+              </p>
+              <a class="fb-cover__contact" href="mailto:info@farmboyapparel.ca">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                <span>info@farmboyapparel.ca</span>
+              </a>
             </div>
+
+            {/* Right side: product grid, or the expanded product in-place */}
+            {selected.value ? (() => {
+              const sel = selected.value!;
+              const cols = sortColorsWhiteLast(sel.colors || []);
+              const isWL = WAIST_LENGTH_SKUS.has(sel.sku);
+              const isVariant = VARIANT_SKUS.has(sel.sku);
+              const opts = sizeChipsFor(sel.sku, sel.sizes, selVariant.value);
+              const variants = VARIANT_SIZES[sel.sku] ? Object.keys(VARIANT_SIZES[sel.sku]) : [];
+              const needsColor = cols.length > 0;
+              const canAdd = (isWL
+                ? (!!selWaist.value && !!selLength.value)
+                : isVariant
+                  ? (!!selVariant.value && !!selSize.value)
+                  : (opts.length <= 1 || !!selSize.value))
+                && (!needsColor || !!selColor.value);
+              const gallery = (sel.imgs && sel.imgs.length ? sel.imgs : (sel.img ? [sel.img] : []));
+              const mainImg = gallery[detailImg.value] || gallery[0] || "";
+              return (
+                <div class="fb-detail">
+                  <button type="button" class="fb-detail__close" onClick$={closeProduct} aria-label="Back to all products">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    <span>All products</span>
+                  </button>
+                  <div class="fb-detail__body">
+                    <div class="fb-detail__gallery">
+                      <div class="fb-detail__media">
+                        {mainImg
+                          ? <img src={mainImg} alt={sel.name} width="480" height="480" />
+                          : <span class="fb-shelf__ph" aria-hidden="true">Farm Boy</span>}
+                      </div>
+                      {gallery.length > 1 && (
+                        <div class="fb-detail__thumbs">
+                          {gallery.map((im, i) => (
+                            <button key={im} type="button" class="fb-detail__thumb" aria-pressed={detailImg.value === i} aria-label={`Image ${i + 1}`} onClick$={() => { detailImg.value = i; }}>
+                              <img src={im} alt="" width="56" height="56" loading="lazy" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div class="fb-detail__info">
+                      <h2 class="fb-detail__name">{sel.name}</h2>
+                      {!isTech.value && <div class="fb-detail__price">${(Number(sel.price) || 0).toFixed(2)}</div>}
+
+                      {cols.length > 0 && (
+                        <div class="fb-detail__group">
+                          <span class="fb-detail__label">Colour{selColor.value ? ` — ${colorName(selColor.value, locale.value)}` : ""}</span>
+                          <div class="fb-detail__swatches">
+                            {cols.map((c) => (
+                              <button key={c} type="button" class="fb-detail__swatch" aria-pressed={selColor.value === c} aria-label={colorName(c, locale.value)} style={{ background: c }} onClick$={() => { selColor.value = c; }} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {isWL ? (
+                        <div class="fb-detail__group">
+                          <div class="fb-detail__wl">
+                            <div class="fb-detail__select-group">
+                              <span class="fb-detail__label">Waist</span>
+                              <select class="fb-detail__select" value={selWaist.value} onChange$={(_, el) => { selWaist.value = el.value; }}>
+                                <option value="" disabled>Select</option>
+                                {PANTS_WAIST.map((w) => <option key={w} value={w}>{w}</option>)}
+                              </select>
+                            </div>
+                            <div class="fb-detail__select-group">
+                              <span class="fb-detail__label">Inseam</span>
+                              <select class="fb-detail__select" value={selLength.value} onChange$={(_, el) => { selLength.value = el.value; }}>
+                                <option value="" disabled>Select</option>
+                                {PANTS_INSEAM.map((l) => <option key={l} value={l}>{l}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {opts.length > 0 && (
+                            <div class="fb-detail__group">
+                              <span class="fb-detail__label">Size{isVariant && selVariant.value ? ` — ${selVariant.value}` : ""}</span>
+                              <div class="fb-detail__sizes">
+                                {opts.map((s) => (
+                                  <button key={s} type="button" class="fb-detail__size" aria-pressed={selSize.value === s} onClick$={() => { selSize.value = s; }}>{s === "One Size" ? t("modal.onesize", locale.value) : s}</button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {isVariant && variants.length > 0 && (
+                            <div class="fb-detail__group">
+                              <span class="fb-detail__label">Fit</span>
+                              <div class="fb-detail__sizes">
+                                {variants.map((v) => (
+                                  <button key={v} type="button" class="fb-detail__size" aria-pressed={selVariant.value === v} onClick$={() => {
+                                    selVariant.value = v;
+                                    const m = VARIANT_SIZES[selectedSku.value];
+                                    if (m && m[v] && !m[v].includes(selSize.value)) selSize.value = "";
+                                  }}>{v}</button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      <div class="fb-detail__actions">
+                        <div class="fb-detail__qty">
+                          <button type="button" aria-label="Decrease quantity" onClick$={() => { if (selQty.value > 1) selQty.value--; }}>−</button>
+                          <span>{selQty.value}</span>
+                          <button type="button" aria-label="Increase quantity" onClick$={() => { selQty.value++; }}>+</button>
+                        </div>
+                        <button type="button" class="fb-detail__add" disabled={!canAdd} onClick$={addToCart}>
+                          {added.value ? "Added ✓" : canAdd ? "Add to Cart" : "Select size"}
+                        </button>
+                      </div>
+                      {added.value && <div class="fb-detail__added">✓ Added to your cart</div>}
+
+                      {sel.material && <p class="fb-detail__meta-line">{sel.material}</p>}
+                      {sel.details && <p class="fb-detail__desc">{sel.details}</p>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })() : (
+              <div class="fb-shelf" role="list">
+                {allProducts.map((p) => (
+                  <button type="button" key={p.sku} class="fb-shelf__card" onClick$={() => openProduct(p.sku)}>
+                    <div class="fb-shelf__img">
+                      {p.img
+                        ? <img src={p.img} alt={p.name} width="240" height="240" loading="lazy" />
+                        : <span class="fb-shelf__ph" aria-hidden="true">Farm Boy</span>}
+                    </div>
+                    <div class="fb-shelf__meta">
+                      <span class="fb-shelf__name">{p.name}</span>
+                      <div class="fb-shelf__meta-row">
+                        {!isTech.value && <span class="fb-shelf__price">${(Number(p.price) || 0).toFixed(2)}</span>}
+                        <span class="fb-shelf__sizes">{p.sizes}</span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Bottom 1/3: category cards */}
-        <div class="hero__lower">
-          <div class="hero-categories">
-                {isTech.value ? (<>
-                  <a href="/apparel/" class="category-card category-card--tech-primary">
-                    <picture>
-                      <source media="(max-width: 767px)" srcset="/carmichael-services/chiller-retrofit.jpeg" />
-                      <source media="(min-width: 768px) and (max-width: 1024px)" srcset="/carmichael-services/hvac-retrofit.jpeg" />
-                      <img src="/carmichael-services/boiler-technicians.jpeg" alt="Work Wear" width="400" height="300" loading="eager" decoding="sync" />
-                    </picture>
-                    <span class="category-card__label">{t("teaser.workwear.title", locale.value)}</span>
-                  </a>
-                  <a href="/apparel/" class="category-card category-card--tech-extra category-card--tech-desktop">
-                    <img src="/carmichael-services/careers.jpeg" alt="" width="400" height="300" loading="eager" decoding="sync" />
-                  </a>
-                  <a href="/apparel/" class="category-card category-card--tech-extra category-card--tech-desktop">
-                    <img src="/carmichael-services/hvac-retrofit.jpeg" alt="" width="400" height="300" loading="eager" decoding="sync" />
-                  </a>
-                  <a href="/apparel/" class="category-card category-card--tech-extra category-card--tech-tablet">
-                    <img src="/carmichael-services/chiller-retrofit.jpeg" alt="" width="400" height="300" loading="eager" decoding="sync" />
-                  </a>
-                </>) : isSafety.value ? (<>
-                  {/* Safety uses plain .category-card on all four cards (no
-                      --tech-primary / --tech-extra) so the layout is a uniform
-                      2x2 on mobile and tablet, 4-up row on desktop. */}
-                  <a href="/apparel/" class="category-card">
-                    <img src="/hero.jpg" alt="Flame Resistant" width="400" height="300" loading="eager" decoding="sync" />
-                    <span class="category-card__label">{t("cat.Flame Resistant", locale.value)}</span>
-                  </a>
-                  <a href="/apparel/#shirts" class="category-card">
-                    <img src="/shirts.jpg" alt="Classic Shirts" width="400" height="300" loading="eager" decoding="sync" />
-                    <span class="category-card__label">{t("teaser.polos.title", locale.value)}</span>
-                  </a>
-                  <a href="/apparel/#hats" class="category-card">
-                    <div class="category-card__split">
-                      <img src="/swag/cap.png" alt="Ball cap" width="200" height="300" loading="eager" decoding="sync" />
-                      <img src="/sku/toque-removebg-preview.png" alt="Toque" class="category-card__split-img--pad" width="200" height="300" loading="eager" decoding="sync" />
-                    </div>
-                    <span class="category-card__label">{t("teaser.hats.title", locale.value)}</span>
-                  </a>
-                  <a href="/apparel/" class="category-card">
-                    <img src="/jackets.jpg" alt="" width="400" height="300" loading="eager" decoding="sync" />
-                  </a>
-                </>) : (<>
-                  <a href="/apparel/#polos" class="category-card">
-                    <img src="/shirts.jpg" alt="Classic Shirts" width="400" height="300" loading="eager" decoding="sync" />
-                    <span class="category-card__label">{t("teaser.polos.title", locale.value)}</span>
-                  </a>
-                  <a href="/apparel/#jackets" class="category-card">
-                    <img src="/jackets.jpg" alt="Jackets & Hoodies" width="400" height="300" loading="eager" decoding="sync" />
-                    <span class="category-card__label">{t("teaser.jackets.title", locale.value)}</span>
-                  </a>
-                  <a href="/apparel/#hats" class="category-card">
-                    <div class="category-card__split">
-                      <img src="/swag/cap.png" alt="Ball cap" width="200" height="300" loading="eager" decoding="sync" />
-                      <img src="/sku/toque-removebg-preview.png" alt="Toque" class="category-card__split-img--pad" width="200" height="300" loading="eager" decoding="sync" />
-                    </div>
-                    <span class="category-card__label">{t("teaser.hats.title", locale.value)}</span>
-                  </a>
-                  <a href="/apparel/#swag" class="category-card">
-                    <div class="category-card__split">
-                      <img src="/swag/yeti.png" alt="Yeti tumbler" width="200" height="300" loading="eager" decoding="sync" />
-                      <img src="/swag/Tundra.png" alt="Yeti cooler" width="200" height="300" loading="eager" decoding="sync" />
-                    </div>
-                    <span class="category-card__label">{t("cat.SWAG", locale.value)}</span>
-                  </a>
-                </>)}
-          </div>
-        </div>
-
       </section>
-
-
-
-      {/* Apparel Catalog */}
-      <ProductCatalog />
     </div>
   );
 });
@@ -262,7 +351,7 @@ export const head: DocumentHead = {
   meta: [
     { name: "description", content: "Farmboy Apparel Employee Apparel. Order branded jackets, polos, hats, and more." },
     { name: "robots", content: "noindex, nofollow" },
-    { name: "theme-color", content: "#ffffff" },
+    { name: "theme-color", content: "#d5202a" },
     { property: "og:title", content: "Farmboy Apparel" },
     { property: "og:description", content: "Internal apparel ordering for Farmboy Apparel staff." },
     { property: "og:type", content: "website" },
