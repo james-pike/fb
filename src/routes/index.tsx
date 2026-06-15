@@ -190,8 +190,8 @@ export default component$(() => {
               <p class="fb-cover__kicker">Fresh off the farm</p>
               <p class="fb-cover__sub">
                 {isTech.value
-                  ? "Rugged work wear, picked fresh for the crew — built to last, branded to belong."
-                  : "Branded jackets, polos, hats & more — hand-picked for the Farm Boy crew."}
+                  ? "Tough, dependable workwear for the team — built for the job and made to wear with pride."
+                  : "Official Farm Boy gear — jackets, polos, hats and more, ready to wear on and off the floor."}
               </p>
               <div class="fb-cover__contact-wrap">
                 <span class="fb-cover__contact-title">Contact</span>
