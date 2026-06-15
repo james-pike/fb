@@ -7172,7 +7172,7 @@ details[open] > .cart-drawer__checkout-title::after {
     gap: 0.85vw;               /* match the product-card gap */
     padding: 0.85vw;          /* tight — the top bar is its own row above */
   }
-  .fb-cover__card { align-self: stretch; justify-content: flex-start; padding-top: 6vh; }   /* fill the column, cluster nudged down a bit */
+  .fb-cover__card { align-self: stretch; justify-content: flex-start; padding-top: 11vh; }   /* fill the column, cluster nudged down a bit */
   /* product grid fills the available height so the page never exceeds 100vh.
      NB: rely on align-self:stretch (auto height) — an explicit height:100%
      here can't resolve and collapses the grid to the top half. */
