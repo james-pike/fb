@@ -21,10 +21,11 @@ const PANTS_INSEAM = ["28", "30", "32", "34", "36"];
 // Regular/Tall handled as a separate variant line (same approach as CM/MN) —
 // the size bubbles narrow to the chosen variant instead of mixing in the talls.
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL"];
-const VARIANT_SKUS = new Set(["FB-1", "FB-2"]);
+const VARIANT_SKUS = new Set(["FB-1", "FB-2", "FB-4"]);
 const VARIANT_SIZES: Record<string, Record<string, string[]>> = {
   "FB-1": { "Regular": ["S", "M", "L", "XL", "2XL", "3XL", "4XL"], "Tall": ["L", "XL", "2XL", "3XL"] },
   "FB-2": { "Regular": ["S", "M", "L", "XL", "2XL", "3XL", "4XL"], "Tall": ["L", "XL", "2XL", "3XL"] },
+  "FB-4": { "Regular": ["S", "M", "L", "XL", "2XL", "3XL"], "Tall": ["L", "XL", "2XL"] },
 };
 // Size pool for a product: the chosen variant's run, the union before a
 // variant is picked, or the plain expanded sizes for non-variant SKUs.
