@@ -7172,7 +7172,9 @@ details[open] > .cart-drawer__checkout-title::after {
     gap: 0.85vw;               /* match the product-card gap */
     padding: 0.85vw;          /* tight — the top bar is its own row above */
   }
-  .fb-cover__card { align-self: stretch; justify-content: flex-start; padding-top: 11vh; }   /* fill the column, cluster nudged down a bit */
+  /* logo/kicker/subtitle cluster nudged to an upper-middle spot with even
+     spacing; contact block is absolutely pinned to the bottom (below) */
+  .fb-cover__card { align-self: stretch; justify-content: flex-start; gap: 2vw; padding: 16vh 2vw 8vh; }
   /* product grid fills the available height so the page never exceeds 100vh.
      NB: rely on align-self:stretch (auto height) — an explicit height:100%
      here can't resolve and collapses the grid to the top half. */
@@ -7239,7 +7241,7 @@ details[open] > .cart-drawer__checkout-title::after {
   font-size: 2.5vw;
   color: var(--fb-red-deep);
   line-height: 1;
-  margin: 0.4vw 0 0;
+  margin: 0;
 }
 .fb-cover__sub {
   font-family: var(--font-sans);
