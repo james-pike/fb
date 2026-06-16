@@ -186,7 +186,7 @@ export default component$(() => {
                 <img class="fb-cover__logo fb-cover__logo--mobile" src="/farmboy-logo-mobile.svg" alt="Farm Boy Apparel" width="302" height="280" />
               </span>
               <p class="fb-cover__sub">
-                Premium Branded Farm Boy Gear
+                Premium Branded Farm Boy Apparel
               </p>
               <div class="fb-cover__contact-wrap">
                 <span class="fb-cover__contact-title">Contact</span>

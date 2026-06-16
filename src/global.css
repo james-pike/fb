@@ -7260,7 +7260,7 @@ details[open] > .cart-drawer__checkout-title::after {
 }
 .fb-cover__sub {
   font-family: var(--font-script);
-  font-size: 2.5vw;
+  font-size: 2.1vw;
   font-weight: 700;
   line-height: 1.2;
   color: var(--fb-red-deep);
