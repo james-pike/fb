@@ -221,13 +221,13 @@ export const useSubmitOrder = routeAction$(
     </tr>`
   ).join("");
 
-  const fromAddress = env.get("RESEND_FROM") || env.get("VITE_RESEND_FROM") || "Farmboy Apparel <onboarding@resend.dev>";
+  const fromAddress = env.get("RESEND_FROM") || env.get("VITE_RESEND_FROM") || "Farm Boy Apparel <onboarding@resend.dev>";
   const toAddress = env.get("ORDER_NOTIFY_TO") || env.get("VITE_ORDER_NOTIFY_TO") || "info@farmboyapparel.ca";
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
       <div style="background:#d5202a;padding:20px 24px;border-radius:8px 8px 0 0">
-        <h1 style="color:#fff;margin:0;font-size:20px">Farmboy Apparel — Apparel Order</h1>
+        <h1 style="color:#fff;margin:0;font-size:20px">Farm Boy Apparel — Apparel Order</h1>
         ${orderNumber ? `<p style="color:#cbd5e1;margin:6px 0 0;font-size:13px;letter-spacing:0.04em">Order ${esc(orderNumber)}</p>` : ""}
       </div>
       <div style="padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
@@ -665,7 +665,7 @@ export default component$(() => {
             )}
             <div class="login-modal__header">
               <div class="login-modal__brand">
-                <img class="login-modal__logo" src="/farmboy-logo.svg" alt="Farmboy Apparel" width="302" height="280" />
+                <img class="login-modal__logo" src="/farmboy-logo.svg" alt="Farm Boy Apparel" width="302" height="280" />
               </div>
               <p class="login-modal__subtitle">
                 {t("login.subtitle", locale.value)}
@@ -720,7 +720,7 @@ export default component$(() => {
               <polygon points="50,50 0,0 50,0" fill="#ffd25b" />
             </svg>
             <div class="brand-cluster__words">
-              <span class="brand-cluster__word">FARMBOY</span>
+              <span class="brand-cluster__word">FARM BOY</span>
               <span class="brand-cluster__word brand-cluster__word--sub">APPAREL</span>
             </div>
           </Link>
@@ -775,7 +775,7 @@ export default component$(() => {
                   <polygon points="50,50 0,0 50,0" fill="#ffd25b" />
                 </svg>
                 <div class="brand-cluster__words">
-                  <span class="brand-cluster__word">FARMBOY</span>
+                  <span class="brand-cluster__word">FARM BOY</span>
                   <span class="brand-cluster__word brand-cluster__word--sub">APPAREL</span>
                 </div>
               </div>
@@ -890,7 +890,7 @@ export default component$(() => {
               <polygon points="50,50 0,0 50,0" fill="#ffd25b" />
             </svg>
             <div class="brand-cluster__words">
-              <span class="brand-cluster__word">FARMBOY</span>
+              <span class="brand-cluster__word">FARM BOY</span>
               <span class="brand-cluster__word brand-cluster__word--sub">APPAREL</span>
             </div>
           </div>
@@ -927,7 +927,7 @@ export default component$(() => {
           <div class="drawer cart-drawer" onClick$={(e) => e.stopPropagation()}>
             <div class="cart-drawer__site-header">
               <Link href="/" class="site-header__logo">
-                <img src="/logo.png" alt="Farmboy Apparel" class="site-header__logo-img" width="200" height="200" loading="eager" decoding="sync" />
+                <img src="/logo.png" alt="Farm Boy Apparel" class="site-header__logo-img" width="200" height="200" loading="eager" decoding="sync" />
               </Link>
               <nav class="site-header__nav">
                 <button class="cart-btn" onClick$={() => (cartOpen.value = false)}>

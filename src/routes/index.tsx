@@ -185,7 +185,7 @@ export default component$(() => {
           <div class="fb-stage">
             <div class="fb-cover__card">
               <span class="fb-cover__badge">
-                <img class="fb-cover__logo" src="/farmboy-logo.svg" alt="Farmboy Apparel" width="302" height="280" />
+                <img class="fb-cover__logo" src="/farmboy-logo.svg" alt="Farm Boy Apparel" width="302" height="280" />
               </span>
               <p class="fb-cover__kicker">Fresh off the farm</p>
               <p class="fb-cover__sub">
@@ -362,21 +362,21 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Farmboy Apparel",
+  title: "Farm Boy Apparel",
   meta: [
-    { name: "description", content: "Farmboy Apparel Employee Apparel. Order branded jackets, polos, hats, and more." },
+    { name: "description", content: "Farm Boy Apparel Employee Apparel. Order branded jackets, polos, hats, and more." },
     { name: "robots", content: "noindex, nofollow" },
     { name: "theme-color", content: "#d5202a" },
-    { property: "og:title", content: "Farmboy Apparel" },
-    { property: "og:description", content: "Internal apparel ordering for Farmboy Apparel staff." },
+    { property: "og:title", content: "Farm Boy Apparel" },
+    { property: "og:description", content: "Internal apparel ordering for Farm Boy Apparel staff." },
     { property: "og:type", content: "website" },
     { property: "og:url", content: "https://farmboyapparel.ca/" },
     { property: "og:image", content: "https://farmboyapparel.ca/farmboy-og.png" },
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Farmboy Apparel" },
-    { name: "twitter:description", content: "Internal apparel ordering for Farmboy Apparel staff." },
+    { name: "twitter:title", content: "Farm Boy Apparel" },
+    { name: "twitter:description", content: "Internal apparel ordering for Farm Boy Apparel staff." },
     { name: "twitter:image", content: "https://farmboyapparel.ca/farmboy-og.png" },
   ],
 };

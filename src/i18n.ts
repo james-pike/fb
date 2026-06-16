@@ -51,7 +51,7 @@ const translations = {
   // Teaser cards
   "teaser.all.tag": { en: "Full Collection", fr: "Collection complète" },
   "teaser.all.title": { en: "All Apparel", fr: "Les Vêtements" },
-  "teaser.all.text": { en: "Browse the complete Farmboy Apparel branded collection.", fr: "Parcourez la collection complète Farmboy Apparel." },
+  "teaser.all.text": { en: "Browse the complete Farm Boy Apparel branded collection.", fr: "Parcourez la collection complète Farm Boy Apparel." },
   "teaser.all.cta": { en: "Browse Apparel", fr: "Parcourir les vêtements" },
   "teaser.jackets.tag": { en: "Cold Weather", fr: "Temps froid" },
   "teaser.jackets.title": { en: "Jackets & Hoodies", fr: "Manteaux et hoodies" },

@@ -1,12 +1,12 @@
 {
   "$schema": "https://json.schemastore.org/web-manifest-combined.json",
-  "name": "Farmboy Apparel",
-  "short_name": "Farmboy",
+  "name": "Farm Boy Apparel",
+  "short_name": "Farm Boy",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5ecd7",
   "theme_color": "#d5202a",
-  "description": "Internal apparel ordering for Farmboy Apparel staff.",
+  "description": "Internal apparel ordering for Farm Boy Apparel staff.",
   "icons": [
     {
       "src": "/farmboy-logo.png",
