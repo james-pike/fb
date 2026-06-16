@@ -7174,7 +7174,7 @@ details[open] > .cart-drawer__checkout-title::after {
 @media (min-width: 1025px) {
   .hero--fb { box-sizing: border-box; }
   .fb-stage {
-    grid-template-columns: 38% 1fr;   /* rule-of-thirds: roomier cover left */
+    grid-template-columns: 33% 1fr;   /* narrower cover so square product cards get more width */
     grid-template-rows: 1fr;                          /* the row fills the stage height */
     align-items: stretch;
     gap: 0.85vw;               /* match the product-card gap */
@@ -7184,7 +7184,7 @@ details[open] > .cart-drawer__checkout-title::after {
      spacing; contact block is absolutely pinned to the bottom (below).
      NB: .fb-stage prefix raises specificity so the base .fb-cover__card rule
      (later in the file) can't reset our padding/gap. */
-  .fb-stage .fb-cover__card { align-self: stretch; justify-content: flex-start; gap: 1.8vw; padding: 4vh 2vw 8vh; }
+  .fb-stage .fb-cover__card { align-self: stretch; justify-content: flex-start; gap: 1.8vw; padding: 9vh 2vw 8vh; }
   .fb-stage .fb-cover__kicker { margin-top: 1.6vw; }   /* extra space under the logo */
   .fb-stage .fb-cover__sub { margin-top: -0.8vw; }   /* pull subtitle closer to the red kicker */
   /* product grid fills the available height so the page never exceeds 100vh.
@@ -7193,12 +7193,13 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-shelf {
     align-self: stretch;
     min-height: 0;
-    grid-template-rows: repeat(2, 1fr);
-    grid-auto-rows: 1fr;
-    align-content: stretch;
+    /* rows sized by the (locked-square) cards, centered vertically — the image
+       keeps a fixed 1:1 ratio instead of stretching to fill 100vh */
+    grid-template-rows: auto auto;
+    align-content: center;
   }
   .fb-shelf__card { min-height: 0; }
-  .fb-shelf__img { aspect-ratio: auto; flex: 1 1 0; min-height: 0; }
+  .fb-shelf__img { aspect-ratio: 1; flex: 0 0 auto; min-height: 0; }
 }
 
 /* logo cover cluster (left) — sits directly on the flyer paper, no card box */
@@ -7356,7 +7357,7 @@ details[open] > .cart-drawer__checkout-title::after {
   font-family: var(--font-display); font-weight: 700;
   font-size: 1vw;
   color: var(--fb-ink); line-height: 1.18;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 .fb-shelf__price {
   font-family: var(--font-sans); font-weight: 700;
