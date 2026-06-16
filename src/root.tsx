@@ -18,6 +18,9 @@ export default component$(() => {
         <meta charset="utf-8" />
         <meta name="theme-color" content="#d5202a" />
         <meta name="google" content="notranslate" />
+        <link rel="icon" type="image/svg+xml" href="/farmboy-logo.svg" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/farmboy-logo.png" />
+        <link rel="apple-touch-icon" href="/farmboy-logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=Caveat:wght@600;700&display=swap" rel="stylesheet" />

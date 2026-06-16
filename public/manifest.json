@@ -4,13 +4,13 @@
   "short_name": "Farmboy",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1e40af",
-  "theme_color": "#1e40af",
+  "background_color": "#f5ecd7",
+  "theme_color": "#d5202a",
   "description": "Internal apparel ordering for Farmboy Apparel staff.",
   "icons": [
     {
       "src": "/farmboy-logo.png",
-      "sizes": "200x200",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     }
