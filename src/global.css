@@ -6193,8 +6193,14 @@ details[open] > .cart-drawer__checkout-title::after {
   .product-modal__add { padding: 10px 16px; flex: 0 0 auto; width: auto; font-size: 0.82rem; font-weight: 500; }
   .product-modal__color-qty-row { gap: 1.25rem; }
   .product-modal__actions { flex-direction: row; }
-  .cart-drawer__header { display: none; }
-  .cart-drawer__close-desktop { display: none; }
+  /* keep the header + close button on mobile so the full-screen cart can be
+     exited (the site-header close is hidden on mobile) */
+  .cart-drawer__header { display: flex; position: sticky; top: 0; z-index: 5; margin: 0; border-radius: 0; padding: 0.9rem 1rem; }
+  .cart-drawer__close-desktop {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; font-size: 1.4rem; line-height: 1;
+    border-radius: 8px; background: var(--ce-gray-100, #f1efe9); color: var(--ce-gray-700, #3a3a3a);
+  }
   .cart-drawer__items { padding: 0.4rem 0.75rem; margin: 2px 0; border-radius: 0; }
   .cart-drawer__summary { margin: 2px 0; border-radius: 0; }
   .checkout-modal__form { margin: 2px 0; border-radius: 0; }
@@ -7375,7 +7381,7 @@ details[open] > .cart-drawer__checkout-title::after {
   box-sizing: border-box !important;
   /* viewport-unit margin (zoom-stable); a touch more on the y, a touch less
      on the x. Counted inside the 100vh via border-box. */
-  padding: 0.6vw !important;
+  padding: 0.4vw !important;
   background:
     radial-gradient(130% 70% at 50% 0%, rgba(255,255,255,0.3) 0%, transparent 55%),
     linear-gradient(180deg, #d6bd87 0%, #d3ba83 46%, var(--ce-cream-soft) 100%) !important;
@@ -7590,7 +7596,7 @@ details[open] > .cart-drawer__checkout-title::after {
     padding: 0.6rem 1rem 1.1rem;
     position: relative; z-index: 4;   /* above the .fb-flyer background layer */
   }
-  .hero.hero--fb { padding: clamp(6px, 1.5vw, 10px) !important; height: auto !important; }
+  .hero.hero--fb { padding: clamp(4px, 1vw, 7px) !important; height: auto !important; }
   /* content-height on mobile (no 100vh fill) so there's no empty space and the
      email below the products isn't pushed past overflow:hidden */
   .hero--fb .hero__upper { border-radius: 12px; border-width: 2px; min-height: auto; flex: none !important; height: auto !important; }
@@ -7615,7 +7621,9 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-shelf__meta-row { gap: 0.5rem; }
   .fb-shelf__ph { font-size: clamp(0.7rem, 2vw, 0.85rem); }
 
-  .fb-cart-float { top: clamp(0.6rem, 2vw, 1rem); right: clamp(0.6rem, 2vw, 1rem); }
+  /* sticky to the viewport corner so it stays reachable while scrolling;
+     z-index below the cart overlay (99) so it doesn't poke through when open */
+  .fb-cart-float { position: fixed; z-index: 50; top: clamp(0.6rem, 2vw, 1rem); right: clamp(0.6rem, 2vw, 1rem); }
   .fb-headbtn { font-size: clamp(0.78rem, 2.2vw, 0.92rem); padding: clamp(0.4rem, 1.6vw, 0.55rem) clamp(0.8rem, 3vw, 1.1rem); gap: 0.4rem; border-radius: 6px; }
 
   .fb-detail { border-radius: 12px; padding: clamp(0.9rem, 3vw, 1.4rem); }
