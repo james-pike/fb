@@ -155,9 +155,6 @@ export default component$(() => {
           {/* Flyer paper backdrop + printed decorations */}
           <div class="fb-flyer" aria-hidden="true">
             <div class="fb-flyer__paper" />
-            <svg class="fb-doodle fb-doodle--sprig-l" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M60 110 C60 70 40 50 20 40"/><path d="M48 78 C30 76 22 64 22 50"/><path d="M52 60 C40 54 36 42 40 30"/><path d="M60 70 C72 60 78 46 74 32"/></svg>
-            <svg class="fb-doodle fb-doodle--maple" viewBox="0 0 100 100" fill="currentColor"><path d="M50 6 56 28 74 18 66 38 90 36 72 50 90 64 66 62 74 82 56 72 50 94 44 72 26 82 34 62 10 64 28 50 10 36 34 38 26 18 44 28z"/></svg>
-            <svg class="fb-doodle fb-doodle--leaf-r" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 100 C40 60 80 30 110 20 C104 56 78 92 36 100 Z"/><path d="M28 92 C50 70 78 48 102 32"/></svg>
             <span class="fb-doodle fb-doodle--berry fb-doodle--berry-a" />
             <span class="fb-doodle fb-doodle--berry fb-doodle--berry-b" />
             {/* Scattered abstract produce — subtle background pattern */}
@@ -185,10 +182,11 @@ export default component$(() => {
           <div class="fb-stage">
             <div class="fb-cover__card">
               <span class="fb-cover__badge">
-                <img class="fb-cover__logo" src="/farmboy-logo.svg" alt="Farm Boy Apparel" width="302" height="280" />
+                <img class="fb-cover__logo fb-cover__logo--desktop" src="/farmboy-logo.svg" alt="Farm Boy Apparel" width="302" height="280" />
+                <img class="fb-cover__logo fb-cover__logo--mobile" src="/farmboy-logo-mobile.svg" alt="Farm Boy Apparel" width="302" height="280" />
               </span>
               <p class="fb-cover__sub">
-                Premium Branded Farm Boy Apparel
+                Premium Branded Farm Boy Gear
               </p>
               <div class="fb-cover__contact-wrap">
                 <span class="fb-cover__contact-title">Contact</span>

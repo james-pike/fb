@@ -6197,7 +6197,7 @@ details[open] > .cart-drawer__checkout-title::after {
   .product-modal__actions { flex-direction: row; }
   /* keep the header + close button on mobile so the full-screen cart can be
      exited (the site-header close is hidden on mobile) */
-  .cart-drawer__header { display: flex; position: sticky; top: 0; z-index: 5; margin: 0; border-radius: 0; padding: 0.9rem 1rem; }
+  .cart-drawer__header { display: flex; position: sticky; top: 0; z-index: 5; margin: 0; border-radius: 0; padding: 0.45rem 1rem; }
   .cart-drawer__close-desktop {
     display: inline-flex; align-items: center; justify-content: center;
     width: 34px; height: 34px; font-size: 1.4rem; line-height: 1;
@@ -7247,6 +7247,9 @@ details[open] > .cart-drawer__checkout-title::after {
   width: 28vw;
   height: auto;
 }
+/* desktop shows the standard logo; the mobile variant (bigger badge, smaller
+   APPAREL wordmark) is swapped in under the breakpoint below */
+.fb-cover__logo--mobile { display: none; }
 .fb-cover__kicker {
   font-family: var(--font-script);
   font-weight: 700;
@@ -7257,10 +7260,10 @@ details[open] > .cart-drawer__checkout-title::after {
 }
 .fb-cover__sub {
   font-family: var(--font-script);
-  font-size: 2.2vw;
+  font-size: 2.5vw;
   font-weight: 700;
   line-height: 1.2;
-  color: rgba(58,44,26,0.82);
+  color: var(--fb-red-deep);
   margin: 0;
   max-width: 32ch;
 }
@@ -7410,8 +7413,8 @@ details[open] > .cart-drawer__checkout-title::after {
 /* Floating cart button — overlaid top-right so it adds no top padding */
 .fb-cart-float {
   position: absolute;
-  top: 1.4vh;
-  right: 1.1vw;
+  top: 2.9vh;
+  right: 1.9vw;
   z-index: 8;
 }
 
@@ -7596,7 +7599,7 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-cover__card .fb-cover__contact-wrap { display: none; }
   .fb-contact-bottom {
     display: flex; flex-direction: column; align-items: center;
-    padding: 0.6rem 1rem 1.1rem;
+    padding: 0.6rem 1rem 2rem;
     position: relative; z-index: 4;   /* above the .fb-flyer background layer */
   }
   .hero.hero--fb { padding: clamp(4px, 1vw, 7px) !important; height: auto !important; }
@@ -7608,9 +7611,11 @@ details[open] > .cart-drawer__checkout-title::after {
 
   .fb-cover__card { border-radius: 12px; gap: clamp(0.55rem, 2vw, 1rem); padding: clamp(1.1rem, 4vw, 2rem); }
   .fb-cover__badge { padding: 0.4rem; }
-  .fb-cover__logo { width: clamp(210px, 46vw, 340px); }
+  .fb-cover__logo--desktop { display: none; }
+  .fb-cover__logo--mobile { display: block; }
+  .fb-cover__logo { width: clamp(252px, 55vw, 408px); }
   .fb-cover__kicker { font-size: clamp(1.5rem, 5.5vw, 2.4rem); margin: 0.3rem 0 0; }
-  .fb-cover__sub { font-size: clamp(1.2rem, 4.6vw, 1.6rem); max-width: 42ch; }
+  .fb-cover__sub { font-size: clamp(1.45rem, 5.6vw, 1.95rem); max-width: 42ch; }
   .fb-cover__contact-wrap { gap: 0.3rem; margin-top: 0.6rem; }
   .fb-cover__contact-title { font-size: clamp(0.72rem, 2vw, 0.85rem); }
   .fb-cover__contact { font-size: clamp(0.9rem, 2.6vw, 1.05rem); }
@@ -7618,15 +7623,22 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-shelf { gap: clamp(0.5rem, 1.8vw, 0.85rem); }
   .fb-shelf__card { border-radius: 12px; }
   .fb-shelf__meta { padding: clamp(0.4rem, 1.6vw, 0.6rem) clamp(0.55rem, 2vw, 0.75rem); gap: 0.1rem; }
-  .fb-shelf__name { font-size: clamp(0.98rem, 3.2vw, 1.15rem); }
-  .fb-shelf__price { font-size: clamp(0.98rem, 3vw, 1.1rem); }
-  .fb-shelf__sizes { font-size: clamp(0.82rem, 2.5vw, 0.95rem); }
+  .fb-shelf__name { font-size: clamp(0.92rem, 3vw, 1.1rem); -webkit-line-clamp: 3; }
+  .fb-shelf__price { font-size: clamp(0.95rem, 2.9vw, 1.08rem); }
+  /* let the sizes wrap to full width under the price instead of clipping */
+  .fb-shelf__meta-row { flex-wrap: wrap; }
+  .fb-shelf__sizes {
+    font-size: clamp(0.78rem, 2.4vw, 0.92rem);
+    flex-basis: 100%; text-align: left;
+    white-space: normal; overflow: visible; text-overflow: clip;
+  }
   .fb-shelf__meta-row { gap: 0.5rem; }
   .fb-shelf__ph { font-size: clamp(0.7rem, 2vw, 0.85rem); }
 
   /* sticky to the viewport corner so it stays reachable while scrolling;
      z-index below the cart overlay (99) so it doesn't poke through when open */
-  .fb-cart-float { position: fixed; z-index: 50; top: clamp(0.6rem, 2vw, 1rem); right: clamp(0.6rem, 2vw, 1rem); }
+  /* sit inside the hero container (like desktop), not floating at the viewport edge */
+  .fb-cart-float { position: absolute; z-index: 8; top: clamp(0.85rem, 3.4vw, 1.3rem); right: clamp(0.85rem, 3.4vw, 1.3rem); }
   .fb-headbtn { font-size: clamp(0.78rem, 2.2vw, 0.92rem); padding: clamp(0.4rem, 1.6vw, 0.55rem) clamp(0.8rem, 3vw, 1.1rem); gap: 0.4rem; border-radius: 6px; }
 
   .fb-detail { border-radius: 12px; padding: clamp(0.9rem, 3vw, 1.4rem); }
@@ -7661,7 +7673,7 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-headbtn, .fb-detail__add, .fb-detail__size, .fb-detail__select, .fb-detail__qty, .fb-detail__thumb { border-radius: 10px; }
 }
 @media (max-width: 600px) {
-  .fb-cover__logo { width: clamp(180px, 52vw, 250px); }
+  .fb-cover__logo { width: clamp(216px, 62vw, 300px); }
   .fb-cover__kicker { font-size: clamp(1.4rem, 7vw, 2rem); }
   .fb-detail__body { grid-template-columns: 1fr; }
 }
