@@ -664,21 +664,8 @@ export default component$(() => {
               </button>
             )}
             <div class="login-modal__header">
-              <div class="login-modal__brand brand-cluster brand-cluster--small">
-                <svg class="brand-cluster__mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <polygon points="50,50 50,0 100,0" fill="#ffe2a6" />
-                  <polygon points="50,50 100,0 100,50" fill="#ae1f2a" />
-                  <polygon points="50,50 100,50 100,100" fill="#d43950" />
-                  <polygon points="50,50 100,100 50,100" fill="#9ec069" />
-                  <polygon points="50,50 50,100 0,100" fill="#7fa244" />
-                  <polygon points="50,50 0,100 0,50" fill="#4689b3" />
-                  <polygon points="50,50 0,50 0,0" fill="#31759c" />
-                  <polygon points="50,50 0,0 50,0" fill="#ffd25b" />
-                </svg>
-                <div class="brand-cluster__words">
-                  <span class="brand-cluster__word">FARMBOY</span>
-                  <span class="brand-cluster__word brand-cluster__word--sub">APPAREL</span>
-                </div>
+              <div class="login-modal__brand">
+                <img class="login-modal__logo" src="/farmboy-logo.svg" alt="Farmboy Apparel" width="302" height="280" />
               </div>
               <p class="login-modal__subtitle">
                 {t("login.subtitle", locale.value)}

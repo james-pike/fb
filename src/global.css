@@ -2799,8 +2799,8 @@ img { max-width: 100%; display: block; }
 .login-modal__close:hover { background: var(--ce-gray-200); color: var(--ce-gray-900); }
 
 .login-modal__header { text-align: center; margin-bottom: 1.5rem; }
-.login-modal__logo { height: 40px; width: auto; margin: 0 auto 1.25rem; }
-.login-modal__brand { justify-content: center !important; margin: 0 auto 1.25rem !important; transform: translateX(-0.3rem) !important; }
+.login-modal__logo { display: block; width: 150px; height: auto; margin: 0 auto; }
+.login-modal__brand { display: flex; justify-content: center; margin: 0 auto 1rem; }
 .login-modal__title {
   font-size: 1.25rem; font-weight: 800;
   color: var(--ce-gray-900); letter-spacing: -0.02em; margin-bottom: 0.3rem;
