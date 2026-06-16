@@ -187,7 +187,6 @@ export default component$(() => {
               <span class="fb-cover__badge">
                 <img class="fb-cover__logo" src="/farmboy-logo.svg" alt="Farm Boy Apparel" width="302" height="280" />
               </span>
-              <p class="fb-cover__kicker">Fresh off the farm</p>
               <p class="fb-cover__sub">
                 Premium Branded Farm Boy Apparel
               </p>
