@@ -4,7 +4,7 @@
      Primary is Farm Boy's signature warm red (their script logo / site
      header). The legacy variable names (--ce-green / --ce-gold) are kept so
      the thousands of existing references re-theme automatically — only their
-     values changed from the Modern Niagara blue/teal clone to Farm Boy red. */
+     values changed from the Farm Boy Apparel blue/teal clone to Farm Boy red. */
   --ce-green: #d5202a;        /* Farm Boy red — primary accent */
   --ce-green-dark: #a4161e;   /* deeper red for hovers / active */
   --ce-green-light: #e84c46;  /* lighter red tint */
@@ -6449,7 +6449,7 @@ details[open] > .cart-drawer__checkout-title::after {
 }
 
 /* Centered text overlay */
-/* Centered Farm Boy brand logo on the hero (replaces the old Modern Niagara
+/* Centered Farm Boy brand logo on the hero (replaces the old Farm Boy Apparel
    brandmark + wordmark cluster). The logo art is dark on transparent, so it
    sits on a frosted light card to stay legible over the hero photo. */
 .hero__upper .hero__brand {
@@ -6546,13 +6546,13 @@ details[open] > .cart-drawer__checkout-title::after {
   filter: blur(8px);
   /* Each line fades fully inside its 1/3 window of the brandmark's
      ~1.48s triangle cascade:
-       MODERN NIAGARA   0      → 0.45s  (1st third 0-0.49s)
+       FARM BOY APPAREL   0      → 0.45s  (1st third 0-0.49s)
        BUILDING SERVICES 0.49s → 0.94s  (2nd third 0.49-0.98s)
        APPAREL          per-letter, see .hero__title-letter:nth-child
                         rules below — last letter finishes at 1.48s. */
   animation: hero-word-reveal 0.45s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
 }
-/* MODERN NIAGARA — fade only (no translateY / blur bump). Starts at 0s so
+/* FARM BOY APPAREL — fade only (no translateY / blur bump). Starts at 0s so
    the fade is already in progress when triangle 1 appears, and finishes
    inside the first 1/3 window. */
 .hero__upper .hero__text .hero__title-word:nth-child(1) {
@@ -6650,16 +6650,16 @@ details[open] > .cart-drawer__checkout-title::after {
   white-space: nowrap !important;
   display: block !important;
 }
-/* MODERN NIAGARA share one line. */
+/* FARM BOY APPAREL share one line. */
 .hero__upper .hero__text .hero__title-word-part {
   display: inline !important;
   text-align: left !important;
 }
-/* All three title lines share MODERN NIAGARA's plain opacity fade (no
+/* All three title lines share FARM BOY APPAREL's plain opacity fade (no
    translate, no blur, no per-letter cascade), with a tight stagger so the
    last line completes inside the brandmark triangle cascade above (which
    finishes at ~1.48s).
-     MODERN NIAGARA    0    → 0.45s
+     FARM BOY APPAREL    0    → 0.45s
      BUILDING SERVICES 0.35 → 0.80s
      APPAREL           0.70 → 1.15s
    Applies on every breakpoint — mobile, tablet, and desktop. */
@@ -6672,7 +6672,7 @@ details[open] > .cart-drawer__checkout-title::after {
    (so the per-letter cascade can drive the reveal). CSS animations sit
    *below* !important in the cascade, so we can't fade the parent — instead
    animate the letters themselves with one synchronised fade so APPAREL
-   reads as a single block (matching MODERN NIAGARA's style). */
+   reads as a single block (matching FARM BOY APPAREL's style). */
 .hero__upper .hero__text .hero__title-letter {
   opacity: 0;
   transform: none;
@@ -6697,7 +6697,7 @@ details[open] > .cart-drawer__checkout-title::after {
     left: 5vw !important;
     transform: none !important;
     height: 100% !important;
-    /* Widened from 33.333vw so MODERN NIAGARA fits on a single line at
+    /* Widened from 33.333vw so FARM BOY APPAREL fits on a single line at
        the original 4.1vw font size with breathing room. */
     width: 42vw !important;
     aspect-ratio: auto !important;
@@ -6736,12 +6736,12 @@ details[open] > .cart-drawer__checkout-title::after {
   /* Chained class to outspecificity the base
      `.hero__title-word.hero__title-word--sub { font-weight: 600 }` rule
      so BUILDING SERVICES sits at 500 (matching APPAREL) rather than
-     the heavier 600 of MODERN NIAGARA. */
+     the heavier 600 of FARM BOY APPAREL. */
   .hero__upper .hero__text .hero__title-word.hero__title-word--sub {
     font-size: min(4.6vw, 7.7vh) !important;
     font-weight: 500 !important;
   }
-  /* MODERN NIAGARA on a single line, scaled up to fill more of the
+  /* FARM BOY APPAREL on a single line, scaled up to fill more of the
      widened desktop panel. */
   .hero__upper .hero__text .hero__title-word:nth-child(1) {
     font-size: min(4.6vw, 7.7vh) !important;
@@ -6887,7 +6887,7 @@ details[open] > .cart-drawer__checkout-title::after {
     margin-top: 0 !important;
     align-self: center !important;
   }
-  /* BUILDING SERVICES + APPAREL match the MODERN NIAGARA size (8vw),
+  /* BUILDING SERVICES + APPAREL match the FARM BOY APPAREL size (8vw),
      same as the equal-size treatment on desktop and mobile. */
   .hero__upper .hero__text .hero__title-word {
     font-size: 8vw !important;
@@ -6895,7 +6895,7 @@ details[open] > .cart-drawer__checkout-title::after {
   .hero__upper .hero__text .hero__title-word--sub {
     font-size: 8vw !important;
   }
-  /* MODERN NIAGARA on a single line — sized to fill the tablet cluster
+  /* FARM BOY APPAREL on a single line — sized to fill the tablet cluster
      width (95vw container) similarly to how mobile fills its width. */
   .hero__upper .hero__text .hero__title-word:nth-child(1) {
     font-size: 8vw !important;
@@ -6944,13 +6944,13 @@ details[open] > .cart-drawer__checkout-title::after {
   .hero__upper .hero__text .hero__title-word { font-size: 9.5vw !important; }
   .hero__upper .hero__text .hero__title-word--sub {
     font-size: 9.5vw !important;
-    /* BUILDING SERVICES is 16 chars vs MODERN NIAGARA's 14, so it needs a
+    /* BUILDING SERVICES is 16 chars vs FARM BOY APPAREL's 14, so it needs a
        tighter letter-spacing to render at the same visual line length as
        the headline above. -0.18em compresses the longer line just enough
-       to line up with MODERN NIAGARA's right edge. */
+       to line up with FARM BOY APPAREL's right edge. */
     letter-spacing: -0.18em !important;
   }
-  /* MODERN NIAGARA on a single line — sized to fill the cluster width
+  /* FARM BOY APPAREL on a single line — sized to fill the cluster width
      with minimal horizontal padding while still avoiding clipping. */
   .hero__upper .hero__text .hero__title-word:nth-child(1) {
     font-size: 9.5vw !important;
@@ -7036,7 +7036,7 @@ details[open] > .cart-drawer__checkout-title::after {
 }
 .brand-cluster__word {
   font-size: 0.95rem;
-  /* MODERN NIAGARA reads heavier in the brand lockup. The --sub and
+  /* FARM BOY APPAREL reads heavier in the brand lockup. The --sub and
      --muted variants below pull their own weight back down so they sit
      visually subordinate to the main word. */
   font-weight: 700;
@@ -7047,7 +7047,7 @@ details[open] > .cart-drawer__checkout-title::after {
 .brand-cluster__word--muted {
   opacity: 0.55;
   font-weight: 500;
-  /* APPAREL is lighter (500) than the bolder MODERN NIAGARA (700) so its
+  /* APPAREL is lighter (500) than the bolder FARM BOY APPAREL (700) so its
      line-box carries more whitespace at the top — pull it up so the visual
      gap above APPAREL matches the gap above BUILDING SERVICES. */
   margin-top: -2px;

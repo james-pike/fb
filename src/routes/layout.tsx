@@ -222,7 +222,7 @@ export const useSubmitOrder = routeAction$(
   ).join("");
 
   const fromAddress = env.get("RESEND_FROM") || env.get("VITE_RESEND_FROM") || "Farmboy Apparel <onboarding@resend.dev>";
-  const toAddress = env.get("ORDER_NOTIFY_TO") || env.get("VITE_ORDER_NOTIFY_TO") || "cs@safetyhouse.ca";
+  const toAddress = env.get("ORDER_NOTIFY_TO") || env.get("VITE_ORDER_NOTIFY_TO") || "info@farmboyapparel.ca";
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
