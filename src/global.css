@@ -7603,7 +7603,7 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-cover__card .fb-cover__contact-wrap { display: none; }
   .fb-contact-bottom {
     display: flex; flex-direction: column; align-items: center;
-    padding: 0.6rem 1rem 2rem;
+    padding: 1.3rem 1rem 2rem;
     position: relative; z-index: 4;   /* above the .fb-flyer background layer */
   }
   .hero.hero--fb { padding: clamp(3px, 0.7vw, 5px) !important; height: auto !important; }
