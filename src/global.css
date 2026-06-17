@@ -4297,7 +4297,7 @@ body:has(.apparel-page) .site-header .cart-btn .cart-btn__label { color: #ffffff
 }
 .cart-drawer__header .modal__close { position: static; }
 /* Farm Boy logo at top-left of the cart header, like a site header */
-.cart-drawer__logo { height: 40px; width: auto; display: block; flex: none; }
+.cart-drawer__logo { height: 56px; width: auto; display: block; flex: none; }
 .cart-drawer__title {
   font-size: 0.78rem;
   font-weight: 600;
