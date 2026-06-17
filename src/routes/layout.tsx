@@ -944,7 +944,7 @@ export default component$(() => {
             {cart.items.length === 0 ? (
               <div class="cart-drawer__empty">
                 <p>{t("cart.empty", locale.value)}</p>
-                <a href="/apparel/" class="cart-drawer__back-link" onClick$={() => (cartOpen.value = false)}>{t("cart.backtoapparel", locale.value)}</a>
+                <a href="/" class="cart-drawer__back-link" onClick$={() => (cartOpen.value = false)}>{t("cart.backtoapparel", locale.value)}</a>
               </div>
             ) : checkoutStep.value === "cart" ? (
               <>
@@ -964,7 +964,7 @@ export default component$(() => {
                             <div class="cart-table__product-row">
                             <img src={item.img} alt={item.name} width="40" height="30" class="cart-table__img" />
                             <div>
-                            <Link href={item.sku ? `/apparel/${item.sku}/` : "/apparel/"} class="cart-table__name-link">{stripColorSuffix(item.name)}</Link>
+                            <Link href="/" class="cart-table__name-link" onClick$={() => (cartOpen.value = false)}>{stripColorSuffix(item.name)}</Link>
                             <div class="cart-table__meta">
                               {item.color && item.color.startsWith("#") && <span class="cart-table__swatch" style={{ background: item.color }} aria-hidden="true" />}
                               <span>{item.color ? `${item.color.startsWith("#") ? colorName(item.color, locale.value) : item.color} / ` : ""}{item.size}</span>
