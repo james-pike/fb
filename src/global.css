@@ -7617,6 +7617,8 @@ details[open] > .cart-drawer__checkout-title::after {
     padding: 1.3rem 1rem 2rem;
     position: relative; z-index: 4;   /* above the .fb-flyer background layer */
   }
+  /* logo only appears in the tablet footer row (hidden on phones) */
+  .fb-contact-bottom__logo { display: none; }
   .hero.hero--fb { padding: clamp(3px, 0.7vw, 5px) !important; height: auto !important; }
   /* content-height on mobile (no 100vh fill) so there's no empty space and the
      email below the products isn't pushed past overflow:hidden */
@@ -7686,6 +7688,16 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-detail__added { font-size: clamp(0.82rem, 2.2vw, 0.92rem); }
   /* match the card roundedness on mobile (base is the tiny desktop vw) */
   .fb-headbtn, .fb-detail__add, .fb-detail__size, .fb-detail__select, .fb-detail__qty, .fb-detail__thumb { border-radius: 10px; }
+}
+/* Tablet footer: logo bottom-left, email bottom-right on one row */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .fb-contact-bottom {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1.5rem 0.9rem;
+  }
+  .fb-contact-bottom__logo { display: block; height: 52px; width: auto; }
 }
 @media (max-width: 600px) {
   .fb-cover__logo { width: clamp(216px, 62vw, 300px); }
