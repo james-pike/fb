@@ -7195,24 +7195,21 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-shelf {
     align-self: stretch;
     min-height: 0;
-    /* two equal rows that always fill exactly 100vh (no overflow/clip); each
-       card's meta takes its natural height (incl. 3-line names) and the image
-       flexes into the remaining space, shown via object-fit:contain so the
-       product is never cropped or stretched */
+    /* content-sized rows aligned to the top of the stage */
     grid-template-rows: auto auto;
-    align-content: center;
+    align-content: start;
   }
   .fb-shelf__card { min-height: 0; }
   .fb-shelf__meta { flex: 0 0 auto; }
-  /* consistent 1:1 product image on every screen, but capped in vh so two rows
-     plus 3-line names always fit within 100vh (no clip, no scroll, no stretch).
-     width follows the (square) height, capped to the card width. */
+  /* Always a true 1:1 square: the side is the SMALLER of the card width and a
+     vh cap, so two rows + 3-line names fit within 100vh (no clip/scroll) and
+     the image never goes portrait/stretched on laptop ratios. align-self:center
+     stops the flex column from stretching the width and breaking the square. */
   .fb-shelf__img {
     aspect-ratio: 1;
-    height: 36vh;
-    width: auto;
-    max-width: 100%;
-    margin-inline: auto;
+    width: min(36vh, 100%);
+    height: auto;
+    align-self: center;
     flex: 0 0 auto;
     min-height: 0;
   }
