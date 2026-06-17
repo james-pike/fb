@@ -361,11 +361,11 @@ export default component$(() => {
 export const head: DocumentHead = {
   title: "Farm Boy Apparel",
   meta: [
-    { name: "description", content: "Farm Boy Apparel Employee Apparel. Order branded jackets, polos, hats, and more." },
+    { name: "description", content: "Premium Branded Farm Boy Apparel" },
     { name: "robots", content: "noindex, nofollow" },
     { name: "theme-color", content: "#d5202a" },
     { property: "og:title", content: "Farm Boy Apparel" },
-    { property: "og:description", content: "Internal apparel ordering for Farm Boy Apparel staff." },
+    { property: "og:description", content: "Premium Branded Farm Boy Apparel" },
     { property: "og:type", content: "website" },
     { property: "og:url", content: "https://farmboyapparel.ca/" },
     { property: "og:image", content: "https://farmboyapparel.ca/farmboy-og.png" },
@@ -373,7 +373,7 @@ export const head: DocumentHead = {
     { property: "og:image:height", content: "630" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "Farm Boy Apparel" },
-    { name: "twitter:description", content: "Internal apparel ordering for Farm Boy Apparel staff." },
+    { name: "twitter:description", content: "Premium Branded Farm Boy Apparel" },
     { name: "twitter:image", content: "https://farmboyapparel.ca/farmboy-og.png" },
   ],
 };

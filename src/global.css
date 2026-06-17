@@ -7404,9 +7404,10 @@ details[open] > .cart-drawer__checkout-title::after {
 /* the stage fills hero__upper's height (column main axis) */
 .hero--fb .fb-stage { flex: 1 1 auto !important; min-height: 0 !important; }
 @media (min-width: 1025px) {
-  /* exact viewport height (not just min-height) so the stage has a definite
-     height for the product grid's 1fr rows to fill — locks everything to 100vh */
-  .hero.hero--fb { height: 100svh !important; min-height: 0 !important; }
+  /* min-height (not fixed height) so the single screen still fills the viewport,
+     but can grow a little when a product name wraps to 3 lines instead of
+     clipping the bottom row (grid rows are auto/centered, not 1fr fill) */
+  .hero.hero--fb { min-height: 100svh !important; height: auto !important; }
 }
 /* bunting removed — header no longer needs to clear it */
 .hero--fb .hero-card-header { padding-top: 1.2vw; }
