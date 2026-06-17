@@ -4861,6 +4861,10 @@ details[open] > .cart-drawer__checkout-title::after {
   margin: 0 0 1.5rem;
   line-height: 1.5;
 }
+/* the "Home" button sits on the dark-red primary bg — keep its text white
+   (the base .btn--primary uses near-black text, which is unreadable here) */
+.order-confirm .btn--primary,
+.order-confirm .btn--primary:hover { color: #fff; }
 
 /* ===== Login Button ===== */
 .site-header__login {
