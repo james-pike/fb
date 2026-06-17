@@ -152,21 +152,9 @@ export default component$(() => {
             added.value = false;
           }}
         >
-          {/* Flyer paper backdrop + printed decorations */}
+          {/* Flyer paper backdrop (no decorative objects) */}
           <div class="fb-flyer" aria-hidden="true">
             <div class="fb-flyer__paper" />
-            <span class="fb-doodle fb-doodle--berry fb-doodle--berry-a" />
-            <span class="fb-doodle fb-doodle--berry fb-doodle--berry-b" />
-            {/* Scattered abstract produce — subtle background pattern */}
-            <svg class="fb-veg fb-veg--a" viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="52" r="38"/><path d="M50 16c2-8 8-12 16-12-2 9-8 14-16 14z"/></svg>
-            <svg class="fb-veg fb-veg--b" viewBox="0 0 100 100" fill="currentColor"><path d="M50 10C70 38 76 60 60 76 50 86 38 86 30 76 16 60 30 38 50 10Z"/></svg>
-            <svg class="fb-veg fb-veg--c" viewBox="0 0 100 100" fill="currentColor"><path d="M16 84C40 44 80 30 88 20 82 62 48 88 18 82Z"/></svg>
-            <svg class="fb-veg fb-veg--d" viewBox="0 0 100 100" fill="currentColor"><circle cx="36" cy="40" r="12"/><circle cx="60" cy="38" r="12"/><circle cx="48" cy="60" r="12"/><circle cx="70" cy="60" r="12"/><circle cx="58" cy="80" r="12"/></svg>
-            <svg class="fb-veg fb-veg--e" viewBox="0 0 100 100" fill="currentColor"><path d="M50 90 44 40Q50 30 58 40Z"/><path d="M50 38 46 18M50 38 54 18M50 38 50 14" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/></svg>
-            <svg class="fb-veg fb-veg--f" viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="50" r="40"/></svg>
-            <svg class="fb-veg fb-veg--g" viewBox="0 0 100 100" fill="currentColor"><path d="M50 10C70 38 76 60 60 76 50 86 38 86 30 76 16 60 30 38 50 10Z"/></svg>
-            <svg class="fb-veg fb-veg--h" viewBox="0 0 100 100" fill="currentColor"><path d="M16 84C40 44 80 30 88 20 82 62 48 88 18 82Z"/></svg>
-            <svg class="fb-veg fb-veg--i" viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="52" r="36"/><path d="M50 18c2-8 8-12 16-12-2 9-8 14-16 14z"/></svg>
           </div>
 
           {/* Floating cart button (top-right, overlaid) */}

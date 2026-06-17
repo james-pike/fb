@@ -354,6 +354,7 @@ const colorKeyMap: Record<string, string> = {
   "#8d5f18": "color.bronze",
   "#8a5d3b": "color.carharttbrown",
   "#00b5e2": "color.skyblue",
+  "#c2a878": "color.darktan",
 };
 
 const colorName = (hex: string, locale: Locale): string => {
@@ -944,7 +945,7 @@ export default component$(() => {
             {cart.items.length === 0 ? (
               <div class="cart-drawer__empty">
                 <p>{t("cart.empty", locale.value)}</p>
-                <a href="/" class="cart-drawer__back-link" onClick$={() => (cartOpen.value = false)}>{t("cart.backtoapparel", locale.value)}</a>
+                <button type="button" class="cart-drawer__back-link" onClick$={() => (cartOpen.value = false)}>{t("cart.backtoapparel", locale.value)}</button>
               </div>
             ) : checkoutStep.value === "cart" ? (
               <>
