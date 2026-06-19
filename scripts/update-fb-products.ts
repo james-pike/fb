@@ -171,6 +171,20 @@ const updates: Update[] = [
     imgs: ["/sku/cooler.png"],
     colors: ["#1a1a18"],
   },
+  // Chambray shirts: regular S–4XL, Tall LT–3XLT
+  {
+    sku: "FB-1",
+    sizes: "S - 4XL / LT - 3XLT",
+  },
+  {
+    sku: "FB-2",
+    sizes: "S - 4XL / LT - 3XLT",
+  },
+  // Cole Harbour Soft Shell: XS–6XL
+  {
+    sku: "FB-5",
+    sizes: "XS - 6XL",
+  },
   // Merge MN-4 (Tall) into MN-3 as a size variant
   {
     sku: "MN-3",

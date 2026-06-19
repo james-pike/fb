@@ -7,7 +7,7 @@ export const allProducts = [
     "sku": "FB-1",
     "name": "Carhartt Short Sleeve Shirt - Chambray",
     "category": "Shirts",
-    "sizes": "S - 4XL / LT - 4XLT",
+    "sizes": "S - 4XL / LT - 3XLT",
     "badge": "",
     "colors": [
       "#c2a878"
@@ -24,7 +24,7 @@ export const allProducts = [
     "sku": "FB-2",
     "name": "Carhartt Long Sleeve Shirt - Chambray",
     "category": "Shirts",
-    "sizes": "S - 4XL / LT - 4XLT",
+    "sizes": "S - 4XL / LT - 3XLT",
     "badge": "",
     "colors": [
       "#c2a878"
@@ -41,7 +41,7 @@ export const allProducts = [
     "sku": "FB-5",
     "name": "Cole Harbour Soft Shell Jacket - Black",
     "category": "Jackets",
-    "sizes": "XS - 4XL",
+    "sizes": "XS - 6XL",
     "badge": "",
     "colors": [
       "#1a1a18"
