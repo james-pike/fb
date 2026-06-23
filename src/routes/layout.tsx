@@ -159,6 +159,7 @@ export const useSubmitOrder = routeAction$(
     "#1e40af": "Royal", "#b8b8b8": "Grey Heather", "#7dd3fc": "Light Blue",
     "#6b8bb0": "Solace Blue", "#8a5d3b": "Carhartt Brown",
     "#6e6e6e": "Grey", "#ff6600": "Safety Orange",
+    "#c2a878": "Dark Tan",
   };
   const cName = (hex: string) => colorMap[hex] || hex;
 
@@ -235,15 +236,14 @@ export const useSubmitOrder = routeAction$(
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-      <div style="background:#d5202a;padding:20px 24px;border-radius:8px 8px 0 0">
-        <h1 style="color:#fff;margin:0;font-size:20px">Farm Boy Apparel — Apparel Order</h1>
-        ${orderNumber ? `<p style="color:#cbd5e1;margin:6px 0 0;font-size:13px;letter-spacing:0.04em">Order ${esc(orderNumber)}</p>` : ""}
+      <div style="background:#a4161e;padding:20px 24px;border-radius:8px 8px 0 0">
+        <h1 style="color:#fff;margin:0;font-size:20px">Farm Boy Apparel</h1>
+        ${orderNumber ? `<p style="color:#f0cccd;margin:6px 0 0;font-size:13px;letter-spacing:0.04em">Order #${esc(orderNumber)}</p>` : ""}
       </div>
       <div style="padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
         <p style="margin:0 0 16px;font-size:16px">Thank you for your order!</p>
-        ${orderNumber ? `<p style="margin:0 0 4px"><strong>Order #:</strong> ${esc(orderNumber)}</p>` : ""}
         <p style="margin:0 0 4px"><strong>Date:</strong> ${esc(date)}</p>
-        <p style="margin:0 0 4px"><strong>Employee:</strong> ${esc(employee.name)}</p>
+        <p style="margin:0 0 4px"><strong>Name:</strong> ${esc(employee.name)}</p>
         ${employee.email ? `<p style="margin:0 0 4px"><strong>Email:</strong> <a href="mailto:${esc(employee.email)}">${esc(employee.email)}</a></p>` : ""}
         ${employee.phone ? `<p style="margin:0 0 4px"><strong>Phone:</strong> ${esc(employee.phone)}</p>` : ""}
         ${employee.department ? `<p style="margin:0 0 4px"><strong>Location:</strong> ${esc(employee.department)}</p>` : ""}
@@ -285,7 +285,7 @@ export const useSubmitOrder = routeAction$(
       from: fromAddress,
       to: toAddresses,
       ...(bccAddresses.length ? { bcc: bccAddresses } : {}),
-      subject: `${orderNumber ? `${orderNumber} — ` : ""}Apparel Order — ${employee.name} — ${date}`,
+      subject: `${orderNumber ? `#${orderNumber} — ` : ""}Apparel Order — ${employee.name} — ${date}`,
       html,
     });
   } catch (err) {
