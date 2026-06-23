@@ -16,7 +16,7 @@ import { Resend } from "resend";
 import { createClient } from "@libsql/client";
 import { LocaleContext, t } from "../i18n";
 import type { Locale, TranslationKey } from "../i18n";
-import { allProducts } from "./apparel/products";
+import { allProducts, colorName as productColorName } from "./apparel/products";
 
 const AUTH_COOKIE = "ce_auth"; // v2: orders persist to db
 const LOCALE_COOKIE = "ce_locale";
@@ -152,16 +152,10 @@ export const useSubmitOrder = routeAction$(
 
     const { employee, items, date } = data;
 
-  const colorMap: Record<string, string> = {
-    "#00703c": "Green", "#1a1a18": "Black", "#ffffff": "White",
-    "#2c3e50": "Navy", "#94a3b8": "Silver", "#4a4a4a": "Charcoal",
-    "#8d5f18": "Bronze", "#c0392b": "Red", "#6b3fa0": "Purple",
-    "#1e40af": "Royal", "#b8b8b8": "Grey Heather", "#7dd3fc": "Light Blue",
-    "#6b8bb0": "Solace Blue", "#8a5d3b": "Carhartt Brown",
-    "#6e6e6e": "Grey", "#ff6600": "Safety Orange",
-    "#c2a878": "Dark Tan",
-  };
-  const cName = (hex: string) => colorMap[hex] || hex;
+  // Resolve color names from the single source of truth (auto-generated from
+  // the DB in products.ts), so the email never drifts out of sync. English is
+  // used for the order email regardless of the customer's browsing locale.
+  const cName = (hex: string) => productColorName(hex, "en");
 
   const province = employee.province;
   if (!province || !PROVINCE_TAX[province]) {
