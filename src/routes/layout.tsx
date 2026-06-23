@@ -199,7 +199,7 @@ export const useSubmitOrder = routeAction$(
         args: [insertedId as any],
       });
       const n = Number((seq.rows[0] as any)?.n) || Number(insertedId);
-      orderNumber = `MN-${n}`;
+      orderNumber = `FB-${n}`;
     }
   } catch (err) {
     console.error("Failed to save order to database:", err);
@@ -222,7 +222,16 @@ export const useSubmitOrder = routeAction$(
   ).join("");
 
   const fromAddress = env.get("RESEND_FROM") || env.get("VITE_RESEND_FROM") || "Farm Boy Apparel <onboarding@resend.dev>";
-  const toAddress = env.get("ORDER_NOTIFY_TO") || env.get("VITE_ORDER_NOTIFY_TO") || "info@farmboyapparel.ca";
+  // Staff notification addresses (comma-separated → trimmed array, empties dropped).
+  const staffAddresses = (env.get("ORDER_NOTIFY_TO") || env.get("VITE_ORDER_NOTIFY_TO") || "info@farmboyapparel.ca")
+    .split(",")
+    .map((a) => a.trim())
+    .filter(Boolean);
+  // Customer is the visible recipient; staff is BCC'd. If the customer
+  // didn't provide an email, send To staff directly so the order still arrives.
+  const customerEmail = (employee.email || "").trim();
+  const toAddresses = customerEmail ? [customerEmail] : staffAddresses;
+  const bccAddresses = customerEmail ? staffAddresses : [];
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
@@ -231,6 +240,7 @@ export const useSubmitOrder = routeAction$(
         ${orderNumber ? `<p style="color:#cbd5e1;margin:6px 0 0;font-size:13px;letter-spacing:0.04em">Order ${esc(orderNumber)}</p>` : ""}
       </div>
       <div style="padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
+        <p style="margin:0 0 16px;font-size:16px">Thank you for your order!</p>
         ${orderNumber ? `<p style="margin:0 0 4px"><strong>Order #:</strong> ${esc(orderNumber)}</p>` : ""}
         <p style="margin:0 0 4px"><strong>Date:</strong> ${esc(date)}</p>
         <p style="margin:0 0 4px"><strong>Employee:</strong> ${esc(employee.name)}</p>
@@ -273,7 +283,8 @@ export const useSubmitOrder = routeAction$(
     const resend = new Resend(apiKey);
     await resend.emails.send({
       from: fromAddress,
-      to: [toAddress],
+      to: toAddresses,
+      ...(bccAddresses.length ? { bcc: bccAddresses } : {}),
       subject: `${orderNumber ? `${orderNumber} — ` : ""}Apparel Order — ${employee.name} — ${date}`,
       html,
     });
