@@ -188,14 +188,28 @@ export const useSubmitOrder = routeAction$(
       ],
     });
     const insertedId = result.lastInsertRowid;
-    if (insertedId != null) {
-      const seq = await db.execute({
-        sql: "SELECT COUNT(*) AS n FROM orders WHERE vendor LIKE 'farmboy%' AND id <= ?",
-        args: [insertedId as any],
-      });
-      const n = Number((seq.rows[0] as any)?.n) || Number(insertedId);
-      orderNumber = `FB-${n}`;
+    // Read the row back to confirm it actually persisted before we tell the
+    // customer the order went through. If the write silently didn't land
+    // (auth revoked mid-flight, replica issue, etc.) this returns 0 rows and
+    // we fail loudly instead of showing a false "order submitted".
+    if (insertedId == null) {
+      console.error("Insert returned no rowid — order not confirmed");
+      return fail(500, { message: "Order could not be confirmed. Please try again." });
     }
+    const check = await db.execute({
+      sql: "SELECT id FROM orders WHERE id = ?",
+      args: [insertedId as any],
+    });
+    if (check.rows.length === 0) {
+      console.error("Order row not found after insert — order not confirmed", insertedId);
+      return fail(500, { message: "Order could not be confirmed. Please try again." });
+    }
+    const seq = await db.execute({
+      sql: "SELECT COUNT(*) AS n FROM orders WHERE vendor LIKE 'farmboy%' AND id <= ?",
+      args: [insertedId as any],
+    });
+    const n = Number((seq.rows[0] as any)?.n) || Number(insertedId);
+    orderNumber = `FB-${n}`;
   } catch (err) {
     console.error("Failed to save order to database:", err);
     return fail(500, { message: "Order could not be saved. Please try again." });
@@ -204,7 +218,7 @@ export const useSubmitOrder = routeAction$(
   // Send order confirmation email
   if (!apiKey) {
     console.warn("RESEND_API_KEY not configured — order saved but email not sent");
-    return { success: true };
+    return { success: true, orderNumber };
   }
 
   const itemRows = items.map((i: any) =>
@@ -287,7 +301,7 @@ export const useSubmitOrder = routeAction$(
     // Order was already saved — don't fail the whole action
   }
 
-  return { success: true };
+  return { success: true, orderNumber };
   },
   zod$({
     employee: z.object({
@@ -525,10 +539,15 @@ export default component$(() => {
     }
     console.log("Order submit result:", result);
     const v = result?.value as any;
-    if (v?.failed) {
+    // Only treat the order as placed when the server explicitly confirms it
+    // saved (v.success === true, set after the DB row is read back). Anything
+    // else — a graceful fail(), a hard 500 crash (v is undefined), or any
+    // unexpected shape — is a failure. This is the safeguard against showing
+    // "Order Submitted!" when nothing actually reached the database.
+    if (v?.success !== true) {
       // Surface zod field errors, top-level form errors, or generic message
-      let msg = v.message;
-      if (!msg && v.fieldErrors) {
+      let msg = v?.message;
+      if (!msg && v?.fieldErrors) {
         const flat: string[] = [];
         const walk = (obj: any) => {
           if (Array.isArray(obj)) flat.push(...obj.map(String));
@@ -537,9 +556,9 @@ export default component$(() => {
         walk(v.fieldErrors);
         msg = flat.join(", ");
       }
-      if (!msg && v.formErrors?.length) msg = v.formErrors.join(", ");
-      formError.value = msg || "Failed to place order. Please try again.";
-      console.error("Order submission failed:", v);
+      if (!msg && v?.formErrors?.length) msg = v.formErrors.join(", ");
+      formError.value = msg || "We couldn't confirm your order went through. Please try again.";
+      console.error("Order submission not confirmed:", v);
       return;
     }
 
