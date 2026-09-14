@@ -171,6 +171,7 @@ const translations = {
   "cart.province": { en: "Province *", fr: "Province *" },
   "cart.po": { en: "PO # *", fr: "N° de bon de commande *" },
   "cart.createorder": { en: "Place Order", fr: "Commander" },
+  "cart.placing": { en: "Placing order…", fr: "Envoi en cours…" },
   "cart.checkout": { en: "Checkout", fr: "Passer à la caisse" },
   "cart.backtocart": { en: "Back to Cart", fr: "Retour au panier" },
   "cart.ordersummary": { en: "Order Summary", fr: "Résumé de la commande" },
@@ -191,6 +192,13 @@ const translations = {
     fr: "Votre commande a été enregistrée et envoyée pour traitement.",
   },
   "order.continue": { en: "Home", fr: "Accueil" },
+  "order.fail.title": { en: "Order Not Submitted", fr: "Commande non soumise" },
+  "order.fail.text": {
+    en: "Your order could not be submitted at this time. Please try again.",
+    fr: "Votre commande n'a pas pu être soumise pour le moment. Veuillez réessayer.",
+  },
+  "order.fail.retry": { en: "Try Again", fr: "Réessayer" },
+  "order.fail.dismiss": { en: "Back to Order", fr: "Retour à la commande" },
 
   // Categories (used in apparel chips & product cards)
   "cat.Polos": { en: "Polos", fr: "Polos" },

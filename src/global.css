@@ -4866,6 +4866,40 @@ details[open] > .cart-drawer__checkout-title::after {
 .order-confirm .btn--primary,
 .order-confirm .btn--primary:hover { color: #fff; }
 
+/* Order number line on the confirmation modal */
+.order-confirm__number {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ce-red, #a4161e);
+  letter-spacing: 0.03em;
+  margin: 0 0 0.4rem;
+}
+
+/* Order failure modal: red title + a row of actions (Try Again / Back). */
+.order-confirm--error .order-confirm__title { color: var(--ce-red, #a4161e); }
+.order-confirm__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+.order-confirm__actions .btn { margin: 0; }
+
+/* Inline button spinner (checkout "Placing…" state) */
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+  margin-right: 8px;
+  vertical-align: -2px;
+}
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
 /* ===== Login Button ===== */
 .site-header__login {
   display: inline-flex; padding: 7px 18px;

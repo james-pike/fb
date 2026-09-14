@@ -1,6 +1,6 @@
 import { component$, Slot, useSignal, useVisibleTask$, $, useContextProvider, useStore, useComputed$, createContextId } from "@builder.io/qwik";
 import type { Signal } from "@builder.io/qwik";
-import { Modal, Collapsible, Accordion } from '@qwik-ui/headless';
+import { Modal, Accordion } from '@qwik-ui/headless';
 import {
   Link,
   routeAction$,
@@ -32,10 +32,10 @@ const PROVINCE_NAMES: Record<string, string> = {
   NS: "Nova Scotia", ON: "Ontario", PE: "Prince Edward Island",
   QC: "Quebec", SK: "Saskatchewan",
 };
-const taxRateFor = (code: string): number | undefined => PROVINCE_TAX[code];
+export const taxRateFor = (code: string): number | undefined => PROVINCE_TAX[code];
 // Provinces with a single branch — the Location field is unnecessary for these
 const SINGLE_BRANCH_PROVINCES = new Set(["AB", "BC"]);
-const needsLocation = (code: string): boolean => !!code && !SINGLE_BRANCH_PROVINCES.has(code);
+export const needsLocation = (code: string): boolean => !!code && !SINGLE_BRANCH_PROVINCES.has(code);
 
 export const LoginTypeContext = createContextId<Signal<string>>("loginType");
 
@@ -150,7 +150,7 @@ export const useSubmitOrder = routeAction$(
     const tursoToken = env.get("TURSO_AUTH_TOKEN") || env.get("VITE_TURSO_AUTH_TOKEN");
     const apiKey = env.get("RESEND_API_KEY") || env.get("VITE_RESEND_API_KEY");
 
-    const { employee, items, date } = data;
+    const { employee, items, date, idempotencyKey } = data;
 
   // Resolve color names from the single source of truth (auto-generated from
   // the DB in products.ts), so the email never drifts out of sync. English is
@@ -167,6 +167,20 @@ export const useSubmitOrder = routeAction$(
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
+  // Dry-run / test mode (local .env only — never set in production). Runs the
+  // full validation + UI flow but skips the Turso write AND the Resend email:
+  //   ORDER_TEST_MODE=1|true|yes  -> simulate SUCCESS (no DB, no email)
+  //   ORDER_TEST_MODE=fail        -> simulate the real DB-failure response
+  const testModeVal = (env.get("ORDER_TEST_MODE") || env.get("VITE_ORDER_TEST_MODE") || "").trim().toLowerCase();
+  if (testModeVal === "fail") {
+    console.warn("[ORDER_TEST_MODE=fail] Simulating a failed order (no DB, no email).");
+    return fail(500, { message: "Order could not be saved. Please try again." });
+  }
+  if (/^(1|true|yes)$/.test(testModeVal)) {
+    console.warn("[ORDER_TEST_MODE] Skipping DB insert + email. Simulated order.", { vendor, total });
+    return { success: true, orderNumber: "FB-TEST" };
+  }
+
   // Insert order into Turso database
   if (!tursoUrl || !tursoToken) {
     return fail(500, { message: "Order database not configured (missing env vars)" });
@@ -174,20 +188,66 @@ export const useSubmitOrder = routeAction$(
   let orderNumber = "";
   try {
     const db = createClient({ url: tursoUrl, authToken: tursoToken });
-    const result = await db.execute({
-      sql: `INSERT INTO orders (vendor, emp_number, emp_name, emp_dept, po_number, items, total, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
-      args: [
-        vendor,
-        "",
-        employee.name,
-        employee.department,
-        employee.po || "",
-        JSON.stringify(items),
-        total,
-      ],
-    });
-    const insertedId = result.lastInsertRowid;
+
+    // Warm up the connection before writing. Turso databases on low-traffic
+    // apps can be cold, and the first request after idle can fail or be slow.
+    // Retry a harmless SELECT a few times (with backoff) to wake it. We retry
+    // only this read — never the INSERT — so a cold start can't create a
+    // duplicate order. The INSERT below then runs once on a live connection.
+    const WARMUP_TRIES = 3;
+    let warmErr: unknown = null;
+    for (let attempt = 1; attempt <= WARMUP_TRIES; attempt++) {
+      try {
+        await db.execute("SELECT 1");
+        warmErr = null;
+        break;
+      } catch (err) {
+        warmErr = err;
+        console.warn(`Turso warmup attempt ${attempt}/${WARMUP_TRIES} failed:`, err);
+        if (attempt < WARMUP_TRIES) await new Promise((r) => setTimeout(r, 600 * attempt));
+      }
+    }
+    if (warmErr) throw warmErr;
+
+    // Empty string must become NULL so orders without a key don't collide on
+    // the unique index (SQLite treats NULLs as distinct, empty strings not).
+    const idemKey = (idempotencyKey || "").trim() || null;
+    let insertedId: bigint | number | null = null;
+    try {
+      const result = await db.execute({
+        sql: `INSERT INTO orders (vendor, emp_number, emp_name, emp_dept, po_number, items, total, status, idempotency_key, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, datetime('now'), datetime('now'))`,
+        args: [
+          vendor,
+          "",
+          employee.name,
+          employee.department,
+          employee.po || "",
+          JSON.stringify(items),
+          total,
+          idemKey,
+        ],
+      });
+      insertedId = result.lastInsertRowid ?? null;
+    } catch (err) {
+      // Idempotent replay: if this key already produced an order (a prior
+      // attempt saved before the response was lost), return that same order
+      // instead of inserting a duplicate. Any other error propagates.
+      if (idemKey && /UNIQUE constraint failed/i.test(String((err as any)?.message ?? err))) {
+        const existing = await db.execute({
+          sql: "SELECT id FROM orders WHERE idempotency_key = ?",
+          args: [idemKey],
+        });
+        if (existing.rows.length > 0) {
+          insertedId = (existing.rows[0] as any).id;
+          console.warn("Idempotent replay — returning existing order for key", idemKey);
+        } else {
+          throw err;
+        }
+      } else {
+        throw err;
+      }
+    }
     // Read the row back to confirm it actually persisted before we tell the
     // customer the order went through. If the write silently didn't land
     // (auth revoked mid-flight, replica issue, etc.) this returns 0 rows and
@@ -330,15 +390,16 @@ export const useSubmitOrder = routeAction$(
       .min(1)
       .max(100),
     date: z.string().min(1).max(40),
+    idempotencyKey: z.string().max(80).optional().default(""),
   }),
 );
 
-function stripColorSuffix(name: string): string {
+export function stripColorSuffix(name: string): string {
   const i = name.lastIndexOf(" - ");
   return i > -1 ? name.slice(0, i) : name;
 }
 
-interface CartItem {
+export interface CartItem {
   name: string;
   sku: string;
   category: string;
@@ -376,7 +437,7 @@ const colorKeyMap: Record<string, string> = {
   "#c2a878": "color.darktan",
 };
 
-const colorName = (hex: string, locale: Locale): string => {
+export const colorName = (hex: string, locale: Locale): string => {
   const key = colorKeyMap[hex];
   if (key) return t(key as TranslationKey, locale);
   return hex;
@@ -386,11 +447,13 @@ export default component$(() => {
   const loc = useLocation();
   // The home page is a single-screen (~100vh) layout, so the footer is redundant there.
   const isHome = useComputed$(() => loc.url.pathname === "/");
+  // Checkout is a self-contained panel (like the old cart drawer) — it renders
+  // without the site header/footer chrome.
+  const isCheckout = useComputed$(() => loc.url.pathname.startsWith("/checkout"));
   const nav = useNavigate();
   const auth = useAuthCheck();
   const loginAction = useLogin();
   const logoutAction = useLogout();
-  const orderAction = useSubmitOrder();
 
   const showLogin = useSignal(false);
   const overlayFading = useSignal(false);
@@ -409,18 +472,9 @@ export default component$(() => {
   const ssrCartCount = useSignal(initialCartCount.value);
   const cartOpen = useSignal(false);
   const orderSubmitted = useSignal(false);
-  const checkoutOpen = useSignal(false);
-  const checkoutStep = useSignal<"cart" | "details">("cart");
-  const summaryOpen = useSignal(true);
-  const formError = useSignal("");
-  const formTouched = useSignal(false);
-  const empFirstName = useSignal("");
-  const empLastName = useSignal("");
-  const empEmail = useSignal("");
-  const empPhone = useSignal("");
-  const empDept = useSignal("");
+  // Province is still shown in the cart drawer's tax preview; the rest of the
+  // employee details are collected on the dedicated /checkout route.
   const empProvince = useSignal("");
-  const empPO = useSignal("");
 
   const cartCount = useComputed$(() => {
     const count = cart.items.reduce((sum, i) => sum + i.quantity, 0);
@@ -487,95 +541,6 @@ export default component$(() => {
     window.dispatchEvent(new CustomEvent("cart-updated"));
   });
 
-  const submitOrder = $(async () => {
-    formTouched.value = true;
-    const locationRequired = needsLocation(empProvince.value);
-    if (!empFirstName.value || !empLastName.value || !empEmail.value || !empPhone.value || !empProvince.value || (locationRequired && !empDept.value) || !empPO.value) {
-      formError.value = t("cart.error.required", locale.value);
-      checkoutOpen.value = true;
-      return;
-    }
-    // Email format check (basic RFC-ish — anything@anything.tld)
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRe.test(empEmail.value.trim())) {
-      formError.value = t("cart.error.email", locale.value);
-      checkoutOpen.value = true;
-      return;
-    }
-    // Phone format check — at least 7 digits, allow +, spaces, dashes, parens
-    const phoneDigits = empPhone.value.replace(/[^\d]/g, "");
-    if (phoneDigits.length < 7 || phoneDigits.length > 15 || !/^[\d\s+()\-.]+$/.test(empPhone.value.trim())) {
-      formError.value = t("cart.error.phone", locale.value);
-      checkoutOpen.value = true;
-      return;
-    }
-    formError.value = "";
-
-    const orderData = {
-      employee: { name: `${empFirstName.value} ${empLastName.value}`, email: empEmail.value, phone: empPhone.value, department: empDept.value, province: empProvince.value, po: empPO.value },
-      items: cart.items.map((i: any) => ({
-        name: i.name || "",
-        sku: i.sku || "",
-        color: i.color || "",
-        size: i.size || "",
-        quantity: Number(i.quantity) || 1,
-        price: Number(i.price) || 0,
-        ...(i.waist ? { waist: i.waist } : {}),
-        ...(i.length ? { length: i.length } : {}),
-        ...(i.variant ? { variant: i.variant } : {}),
-        ...(i.code ? { code: i.code } : {}),
-      })),
-      date: new Date().toLocaleDateString("en-CA"),
-    };
-
-    // Send order via server action
-    let result: any;
-    try {
-      result = await orderAction.submit(orderData);
-    } catch (err) {
-      console.error("Order submit threw:", err);
-      formError.value = (err as Error)?.message || "Network error placing order";
-      return;
-    }
-    console.log("Order submit result:", result);
-    const v = result?.value as any;
-    // Only treat the order as placed when the server explicitly confirms it
-    // saved (v.success === true, set after the DB row is read back). Anything
-    // else — a graceful fail(), a hard 500 crash (v is undefined), or any
-    // unexpected shape — is a failure. This is the safeguard against showing
-    // "Order Submitted!" when nothing actually reached the database.
-    if (v?.success !== true) {
-      // Surface zod field errors, top-level form errors, or generic message
-      let msg = v?.message;
-      if (!msg && v?.fieldErrors) {
-        const flat: string[] = [];
-        const walk = (obj: any) => {
-          if (Array.isArray(obj)) flat.push(...obj.map(String));
-          else if (obj && typeof obj === "object") Object.values(obj).forEach(walk);
-        };
-        walk(v.fieldErrors);
-        msg = flat.join(", ");
-      }
-      if (!msg && v?.formErrors?.length) msg = v.formErrors.join(", ");
-      formError.value = msg || "We couldn't confirm your order went through. Please try again.";
-      console.error("Order submission not confirmed:", v);
-      return;
-    }
-
-    cart.items = [];
-    await saveCart();
-    window.dispatchEvent(new CustomEvent("cart-updated"));
-    orderSubmitted.value = true;
-    cartOpen.value = false;
-    empFirstName.value = "";
-    empLastName.value = "";
-    empEmail.value = "";
-    empPhone.value = "";
-    empDept.value = "";
-    empProvince.value = "";
-    empPO.value = "";
-    formTouched.value = false;
-  });
 
 
   // Listen for open-cart events from child pages
@@ -583,8 +548,6 @@ export default component$(() => {
   useVisibleTask$(({ cleanup }) => {
     const handler = () => {
       cartOpen.value = true;
-      checkoutStep.value = "details";
-      checkoutOpen.value = true;
     };
     window.addEventListener("open-cart", handler);
     cleanup(() => window.removeEventListener("open-cart", handler));
@@ -731,6 +694,7 @@ export default component$(() => {
       )}
 
       {(auth.value.loggedIn || (loginAction.value && !loginAction.value.failed)) && <>
+      {!isCheckout.value && (
       <header class={`site-header site-header--white ${isHome.value ? "site-header--off" : ""} ${cartOpen.value ? "site-header--cart-open" : ""}`}>
         <div class="site-header__inner">
           <Link href="/" class="site-header__logo brand-cluster brand-cluster--small">
@@ -759,7 +723,7 @@ export default component$(() => {
               <span class="locale-btn__short">{locale.value === "en" ? "FR" : "EN"}</span>
               <svg class="locale-btn__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
             </button> */}
-            <button class={`cart-btn ${cart.items.length > 0 ? "cart-btn--active" : ""}`} onClick$={() => { cartOpen.value = !cartOpen.value; if (!cartOpen.value) checkoutStep.value = "cart"; }}>
+            <button class={`cart-btn ${cart.items.length > 0 ? "cart-btn--active" : ""}`} onClick$={() => { cartOpen.value = !cartOpen.value; }}>
               <span class="cart-btn__label">{t("cart.mycart", locale.value)}</span>
               {cartOpen.value ? (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
@@ -782,6 +746,7 @@ export default component$(() => {
           </nav>
         </div>
       </header>
+      )}
 
       {/* Mobile Nav Drawer */}
       {menuOpen.value && (
@@ -900,7 +865,7 @@ export default component$(() => {
         <Slot />
       </main>
 
-      {!isHome.value && (
+      {!isHome.value && !isCheckout.value && (
       <footer class="site-footer">
         <div class="site-footer__inner">
           <div class="site-footer__brand brand-cluster brand-cluster--small">
@@ -971,7 +936,7 @@ export default component$(() => {
                 <p>{t("cart.empty", locale.value)}</p>
                 <button type="button" class="cart-drawer__back-link" onClick$={() => (cartOpen.value = false)}>{t("cart.backtoapparel", locale.value)}</button>
               </div>
-            ) : checkoutStep.value === "cart" ? (
+            ) : (
               <>
                 <div class="cart-drawer__items">
                   <table class="cart-table">
@@ -1041,163 +1006,10 @@ export default component$(() => {
                   </span>
                   <button
                     class="btn btn--primary cart-drawer__order-btn"
-                    onClick$={() => { summaryOpen.value = cart.items.length <= 4; checkoutStep.value = "details"; }}
+                    onClick$={() => { cartOpen.value = false; nav("/checkout/"); }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
                     {t("cart.checkout", locale.value)}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div class="cart-drawer__details-step">
-                  <button class="cart-drawer__back-btn" onClick$={() => { checkoutStep.value = "cart"; }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-                    {t("cart.backtocart", locale.value)}
-                  </button>
-                  <Collapsible.Root class="cart-drawer__summary" bind:open={summaryOpen}>
-                    <Collapsible.Trigger class="cart-drawer__checkout-title">
-                      {t("cart.ordersummary", locale.value)} — {cartCount.value} {cartCount.value !== 1 ? t("cart.items", locale.value) : t("cart.item", locale.value)}
-                    </Collapsible.Trigger>
-                    <Collapsible.Content>
-                      <div class="cart-drawer__summary-list">
-                        {cart.items.map((item) => (
-                          <div key={`${item.name}-${item.size}`} class="cart-drawer__summary-item">
-                            <span>
-                              {item.color && item.color.startsWith("#") && <span class="cart-drawer__summary-swatch" style={{ background: item.color }} aria-hidden="true" />}
-                              {item.quantity}x {stripColorSuffix(item.name)}{(item.color || item.size) ? ` — ${item.color ? (item.color.startsWith("#") ? colorName(item.color, locale.value) : item.color) : ""}${item.color && item.size ? " / " : ""}${item.size || ""}` : ""}
-                            </span>
-                            {loginType.value !== "tech" && <span>${(((Number(item.price) || 0) * item.quantity)).toFixed(2)}</span>}
-                          </div>
-                        ))}
-                        {loginType.value !== "tech" && (
-                          <>
-                            <div class="cart-drawer__summary-item cart-drawer__summary-total">
-                              <span>{t("cart.invoice.subtotal", locale.value)}</span>
-                              <span>${subtotal.value.toFixed(2)}</span>
-                            </div>
-                            {empProvince.value ? (
-                              <>
-                                <div class="cart-drawer__summary-item">
-                                  <span>{taxLabel.value}</span>
-                                  <span>${(taxAmount.value ?? 0).toFixed(2)}</span>
-                                </div>
-                                <div class="cart-drawer__summary-item cart-drawer__summary-total">
-                                  <span>{t("cart.invoice.total", locale.value)}</span>
-                                  <span>${orderTotal.value.toFixed(2)}</span>
-                                </div>
-                              </>
-                            ) : (
-                              <div class="cart-drawer__summary-item">
-                                <span>+ {t("cart.invoice.tax", locale.value)}</span>
-                                <span>—</span>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </Collapsible.Content>
-                  </Collapsible.Root>
-                  <div class="checkout-modal__form">
-                    <h3 class="checkout-modal__form-title">{t("cart.orderdetails", locale.value)}</h3>
-                    <div class="checkout-modal__row">
-                      <div class={`checkout-modal__field ${formTouched.value && !empFirstName.value ? "checkout-modal__field--error" : ""}`}>
-                        <label>{t("cart.firstname", locale.value)}</label>
-                        <input
-                          type="text"
-                          value={empFirstName.value}
-                          onInput$={(_, el) => { empFirstName.value = el.value; formError.value = ""; }}
-                        />
-                      </div>
-                      <div class={`checkout-modal__field ${formTouched.value && !empLastName.value ? "checkout-modal__field--error" : ""}`}>
-                        <label>{t("cart.lastname", locale.value)}</label>
-                        <input
-                          type="text"
-                          value={empLastName.value}
-                          onInput$={(_, el) => { empLastName.value = el.value; formError.value = ""; }}
-                        />
-                      </div>
-                    </div>
-                    {/* Province sits directly under the name row so the
-                        tax line in the cart total updates as soon as
-                        possible — before the user fills in phone/email. */}
-                    <div class={`checkout-modal__field ${formTouched.value && !empProvince.value ? "checkout-modal__field--error" : ""}`}>
-                      <label>{t("cart.province", locale.value)}</label>
-                      <select
-                        required
-                        value={empProvince.value}
-                        onChange$={(_, el) => {
-                          empProvince.value = el.value;
-                          if (!needsLocation(el.value)) empDept.value = "";
-                          formError.value = "";
-                        }}
-                      >
-                        <option value="" disabled hidden>{locale.value === "fr" ? "Sélectionner…" : "Select…"}</option>
-                        <option value="AB">Alberta</option>
-                        <option value="BC">British Columbia</option>
-                        <option value="MB">Manitoba</option>
-                        <option value="NB">New Brunswick</option>
-                        <option value="NL">Newfoundland and Labrador</option>
-                        <option value="NS">Nova Scotia</option>
-                        <option value="ON">Ontario</option>
-                        <option value="PE">Prince Edward Island</option>
-                        <option value="QC">Quebec</option>
-                        <option value="SK">Saskatchewan</option>
-                      </select>
-                    </div>
-                    {/* Location renders only for multi-branch provinces
-                        (see needsLocation). Kept directly under Province so
-                        the conditional field appears next to the trigger
-                        that toggled it. */}
-                    {needsLocation(empProvince.value) && (
-                      <div class={`checkout-modal__field ${formTouched.value && !empDept.value ? "checkout-modal__field--error" : ""}`}>
-                        <label>{t("cart.location", locale.value)}</label>
-                        <input
-                          type="text"
-                          value={empDept.value}
-                          onInput$={(_, el) => (empDept.value = el.value)}
-                        />
-                      </div>
-                    )}
-                    <div class={`checkout-modal__field ${formTouched.value && !empEmail.value ? "checkout-modal__field--error" : ""}`}>
-                      <label>{t("cart.email", locale.value)}</label>
-                      <input
-                        type="email"
-                        value={empEmail.value}
-                        onInput$={(_, el) => { empEmail.value = el.value; formError.value = ""; }}
-                      />
-                    </div>
-                    <div class={`checkout-modal__field ${formTouched.value && !empPhone.value ? "checkout-modal__field--error" : ""}`}>
-                      <label>{t("cart.phone", locale.value)}</label>
-                      <input
-                        type="tel"
-                        value={empPhone.value}
-                        onInput$={(_, el) => { empPhone.value = el.value; formError.value = ""; }}
-                      />
-                    </div>
-                    <div class={`checkout-modal__field ${formTouched.value && !empPO.value ? "checkout-modal__field--error" : ""}`}>
-                      <label>{t("cart.po", locale.value)}</label>
-                      <input
-                        type="text"
-                        value={empPO.value}
-                        onInput$={(_, el) => (empPO.value = el.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-                {formError.value && (
-                  <div class="cart-drawer__error" role="alert">{formError.value}</div>
-                )}
-                <div class="cart-drawer__footer">
-                  <span class="cart-drawer__total">
-                    {cartCount.value} {cartCount.value !== 1 ? t("cart.items", locale.value) : t("cart.item", locale.value)}{loginType.value !== "tech" && (empProvince.value ? ` — $${orderTotal.value.toFixed(2)}` : ` — $${subtotal.value.toFixed(2)} + ${t("cart.invoice.tax", locale.value).toLowerCase()}`)}
-                  </span>
-                  <button
-                    class="btn btn--primary cart-drawer__order-btn"
-                    onClick$={submitOrder}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-                    {t("cart.createorder", locale.value)}
                   </button>
                 </div>
               </>
