@@ -7629,6 +7629,7 @@ details[open] > .cart-drawer__checkout-title::after {
 .fb-detail__add:disabled { background: rgba(58,44,26,0.28); box-shadow: none; cursor: not-allowed; transform: none; filter: none; }
 .fb-detail__added { color: var(--fb-red-deep); font-weight: 700; font-size: 0.94vw; }
 .fb-detail__meta-line { font-family: var(--font-sans); font-size: 0.86vw; color: rgba(58,44,26,0.6); margin: 0; }
+.fb-detail__fit-note { font-family: var(--font-sans); font-size: 0.86vw; line-height: 1.5; color: var(--fb-red); font-style: italic; margin: 0.5vw 0 0; }
 .fb-detail__desc { font-family: var(--font-sans); font-size: 0.9vw; line-height: 1.5; color: rgba(58,44,26,0.72); margin: 0; }
 .fb-detail__details-list {
   columns: 2;
@@ -7722,6 +7723,7 @@ details[open] > .cart-drawer__checkout-title::after {
   .fb-detail__actions { gap: 0.6rem; margin-top: 0.15rem; }
   .fb-detail__desc { font-size: clamp(0.85rem, 2.4vw, 0.95rem); }
   .fb-detail__meta-line { font-size: clamp(0.8rem, 2.2vw, 0.9rem); }
+  .fb-detail__fit-note { font-size: clamp(0.8rem, 2.2vw, 0.9rem); margin-top: 0.5rem; }
   .fb-detail__details-list { column-gap: 1.25rem; padding-left: 1rem; font-size: clamp(0.8rem, 2.2vw, 0.9rem); }
   .fb-detail__added { font-size: clamp(0.82rem, 2.2vw, 0.92rem); }
   /* match the card roundedness on mobile (base is the tiny desktop vw) */

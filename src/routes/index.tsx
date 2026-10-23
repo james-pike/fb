@@ -308,6 +308,11 @@ export default component$(() => {
                           ))}
                         </ul>
                       )}
+                      {(sel.sku === "FB-1" || sel.sku === "FB-2") && (
+                        <p class="fb-detail__fit-note">
+                          Please note this shirt features a generous fit. We recommend ordering one size smaller than your usual size to ensure the best fit.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
